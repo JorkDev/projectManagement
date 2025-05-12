@@ -1,0 +1,469 @@
+<%- include('partials/header') %>
+<% const categoryColors = {
+     "Cartera #1": "bg-danger",
+     "Cartera #2": "bg-warning",
+     "Proyectos TI": "bg-primary",
+     "ISCO Cargo": "bg-info"
+   };
+%>
+
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <!-- Mensaje de Bienvenida -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h1 class="h3 mb-0 text-gray-800">Página de Inicio</h1>
+            <!-- Display the current user's name dynamically here -->
+            <small class="text-muted">
+              Bienvenido
+              <%= user ? `${user.pnombre.charAt(0).toUpperCase() + user.pnombre.slice(1).toLowerCase()} ${user.apaterno.charAt(0).toUpperCase() + user.apaterno.slice(1).toLowerCase()}` : 'Usuario' %>
+            </small>
+          </div>
+          <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm">
+            <i class="fas fa-file-alt fa-sm text-white-50"></i> Generar Reporte
+          </a>
+        </div>
+
+        <!-- Métricas rápidas -->
+        <div class="row">
+          <!-- Activos -->
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                      Proyectos Activos
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      <%= metrics.activos || 0 %>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-spinner fa-2x text-primary"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pausados -->
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                      Proyectos Pausados
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      <%= metrics.pausados || 0 %>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-pause fa-2x text-warning"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progreso Total -->
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                      Progreso Total
+                    </div>
+                    <div class="row no-gutters align-items-center">
+                      <div class="col-auto">
+                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                          <%= metrics.promedioAvance || 0 %>%
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="progress progress-sm mr-2">
+                          <div class="progress-bar bg-info" role="progressbar" style="width: <%= metrics.promedioAvance || 0 %>%" aria-valuenow="<%= metrics.promedioAvance || 0 %>" aria-valuemin="0" aria-valuemax="100">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-clipboard-list fa-2x text-info"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Completados -->
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                      Hitos Completados
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      <%= metrics.completados || 0 %>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-check fa-2x text-success"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end métricas -->
+
+        <!-- Row: Categorías vs Avance & Pie por Área -->
+        <div class="row" style="
+        margin-bottom: -20px;
+    ">
+
+          <!-- Categorías vs Avance (%) -->
+          <div class="col-xl-8 mb-4">
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-dark">
+                  Número de Proyectos vs Avance (%)
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="chart-mixed" style="position: relative; height: 340px;">
+                  <canvas id="priorityProgressChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Proyectos por Área -->
+          <div class="col-xl-4 mb-4">
+            <div class="card shadow mb-4">
+              <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-dark">
+                  Proyectos por Área
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                  <canvas id="myPieChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                  <% metrics.areaData.forEach(area => { %>
+                  <span class="mr-2">
+                    <i class="fas fa-circle" style="color:<%= area.color %>"></i>
+                    <%= area.name %>
+                  </span>
+                  <% }) %>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- end row -->
+
+        <!-- Row: barras de avance y responsables -->
+        <div class="row">
+
+          <!-- Avance por Proyecto -->
+          <div class="col-lg-4 mb-4">
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-dark">
+                  Porcentaje de Avance por Proyecto
+                </h6>
+              </div>
+              <div class="card-body">
+                <% metrics.categoryProgress.forEach(cat => {
+                     const colorClass = categoryColors[cat.name] || "bg-secondary";
+                   %>
+                <h4 class="small font-weight-bold">
+                  <%= cat.name %>
+                  <span class="float-right"><%= cat.average %>%</span>
+                </h4>
+                <div class="progress mb-4">
+                  <div class="progress-bar <%= colorClass %>" role="progressbar" style="width: <%= cat.average %>%" aria-valuenow="<%= cat.average %>" aria-valuemin="0" aria-valuemax="100">
+                  </div>
+                </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Proyectos por Responsable -->
+          <div class="col-xl-8 mb-4">
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-dark">
+                  Proyecto por Responsable
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="chart-bar">
+                  <canvas id="responsibleProjectChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- end row -->
+
+        <!-- JSON inline: Pie chart -->
+        <script id="pieChartData" type="application/json">
+          <%- JSON.stringify({
+            labels: metrics.areaData.map(a => a.name),
+            values: metrics.areaData.map(a => a.count),
+            colors: metrics.areaData.map(a => a.color)
+          }) %>
+        </script>
+
+        <!-- JSON inline: Responsable bar chart -->
+        <script id="barChartData" type="application/json">
+          <%- JSON.stringify({
+            labels: metrics.responsibleData.map(r => r.responsible),
+            counts: metrics.responsibleData.map(r => r.count),
+            colors: [
+              '#f28b82','#8ab4f8','#81c995','#fdd663','#ff8b80',
+              '#aae6e3','#a5d6a7','#8c9eff','#b388ff','#8ce4f8',
+              '#f48fb1','#b39ddb','#90caf9','#ffab91','#ff8a65',
+              '#bcaaa4','#80cbc4','#a5d6a7','#dce775','#82b1ff',
+              '#cfd8dc'
+            ]
+          }) %>
+        </script>
+
+        <!-- JSON inline: Categoría vs Avance mixed chart -->
+        <script id="priorityProgressData" type="application/json">
+          <%- JSON.stringify(metrics.categoryData) %>
+        </script>
+
+        <!-- Chart.js -->
+        <script src="/vendor/chart.js/Chart.min.js"></script>
+        <script src="/js/chart-pie-demo.js"></script>
+
+        <!-- Responsable bar chart init -->
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            // defaults
+            if (Chart.defaults.global) {
+              Chart.defaults.global.defaultFontFamily = "'Nunito', sans-serif";
+              Chart.defaults.global.defaultFontSize = 12;
+              Chart.defaults.global.defaultFontColor = "#5a5a5a";
+            }
+
+            const bc = JSON.parse(document.getElementById('barChartData').textContent);
+
+            // Tomamos los primeros 11 y los agrupamos como objetos para poder ordenarlos
+            const items = bc.labels.slice(0, 11).map((label, i) => ({
+              label,
+              count: bc.counts[i],
+              color: bc.colors[i]
+            }));
+
+            // Orden alfabético por label (responsable)
+            items.sort((a, b) => a.label.localeCompare(b.label));
+
+            // Extraemos los valores ya ordenados
+            const labels = items.map(i => i.label);
+            const counts = items.map(i => i.count);
+            const colors = items.map(i => i.color);
+
+            const ctxBar = document.getElementById('responsibleProjectChart').getContext('2d');
+            new Chart(ctxBar, {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Proyectos',
+                  data: counts,
+                  backgroundColor: colors,
+                  hoverBackgroundColor: colors.map(c => c + 'dd'),
+                  borderColor: '#fff'
+                }]
+              },
+              options: {
+                maintainAspectRatio: false,
+                scales: {
+                  xAxes: [{
+                    gridLines: {
+                      display: false,
+                      drawBorder: false
+                    },
+                    ticks: {
+                      autoSkip: false,
+                      fontFamily: "'Nunito', sans-serif",
+                      fontSize: 12,
+                      fontColor: '#5a5a5a',
+                      padding: 5
+                    }
+                  }],
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true,
+                      precision: 0,
+                      stepSize: 10,
+                      fontFamily: "'Nunito', sans-serif",
+                      fontSize: 11,
+                      fontColor: '#5a5a5a'
+                    },
+                    gridLines: {
+                      color: "rgb(234, 236, 244)",
+                      zeroLineColor: "rgb(234, 236, 244)",
+                      drawBorder: false,
+                      borderDash: [2],
+                      zeroLineBorderDash: [2]
+                    }
+                  }]
+                },
+                legend: {
+                  display: false
+                },
+                tooltips: {
+                  bodyFontFamily: "'Nunito', sans-serif",
+                  titleFontFamily: "'Nunito', sans-serif",
+                  footerFontFamily: "'Nunito', sans-serif",
+                  callbacks: {
+                    label: t => t.yLabel + ' proyecto(s)'
+                  }
+                }
+              }
+            });
+          });
+        </script>
+
+
+        <!-- Mixed category vs avance init -->
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            // Nunito global para Chart.js v2
+            if (Chart.defaults.global) {
+              Chart.defaults.global.defaultFontFamily = "'Nunito', sans-serif";
+              Chart.defaults.global.defaultFontSize = 12;
+              Chart.defaults.global.defaultFontColor = "#5a5a5a";
+            }
+
+            const cd = JSON.parse(document.getElementById('priorityProgressData').textContent);
+            const labels = cd.labels;
+            const counts = cd.counts;
+            const avgs = cd.avgs;
+
+            const ctx = document.getElementById('priorityProgressChart').getContext('2d');
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [{
+                    label: 'Número de Proyectos',
+                    data: counts,
+                    backgroundColor: '#8ab4f891',
+                    yAxisID: 'y-axis-counts',
+                    order: 1
+                  },
+                  {
+                    type: 'line',
+                    label: 'Avance Promedio',
+                    data: avgs,
+                    borderColor: '#81c995',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    yAxisID: 'y-axis-avg',
+                    order: 2
+                  }
+                ]
+              },
+              options: {
+                maintainAspectRatio: false,
+                scales: {
+                  yAxes: [{
+                      id: 'y-axis-counts',
+                      position: 'left',
+                      ticks: {
+                        beginAtZero: true,
+                        precision: 0,
+                        fontFamily: "'Nunito', sans-serif",
+                        fontSize: 12,
+                        fontColor: '#5a5a5a'
+                      },
+                      scaleLabel: {
+                        display: true,
+                        labelString: '# Proyectos',
+                        fontFamily: "'Nunito', sans-serif"
+                      }
+                    },
+                    {
+                      id: 'y-axis-avg',
+                      position: 'right',
+                      ticks: {
+                        beginAtZero: true,
+                        max: 100,
+                        callback: v => v + '%',
+                        fontFamily: "'Nunito', sans-serif",
+                        fontSize: 12,
+                        fontColor: '#5a5a5a'
+                      },
+                      gridLines: {
+                        drawOnChartArea: false
+                      },
+                      scaleLabel: {
+                        display: true,
+                        labelString: 'Avance (%)',
+                        fontFamily: "'Nunito', sans-serif"
+                      }
+                    }
+                  ],
+                  xAxes: [{
+                    ticks: {
+                      autoSkip: false,
+                      fontFamily: "'Nunito', sans-serif",
+                      fontSize: 12,
+                      fontColor: '#5a5a5a'
+                    },
+                    scaleLabel: {
+                      display: true,
+                      labelString: 'Categoría',
+                      fontFamily: "'Nunito', sans-serif"
+                    }
+                  }]
+                },
+                legend: {
+                  display: true,
+                  labels: {
+                    fontFamily: "'Nunito', sans-serif",
+                    fontSize: 12,
+                    fontColor: '#5a5a5a'
+                  }
+                },
+                tooltips: {
+                  bodyFontFamily: "'Nunito', sans-serif",
+                  titleFontFamily: "'Nunito', sans-serif",
+                  footerFontFamily: "'Nunito', sans-serif",
+                  callbacks: {
+                    label: (tti, data) => {
+                      const ds = data.datasets[tti.datasetIndex];
+                      const val = tti.yLabel ?? tti.value;
+                      return ds.label + ': ' + (tti.datasetIndex === 1 ? val + '%' : val);
+                    }
+                  }
+                }
+              }
+            });
+          });
+        </script>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

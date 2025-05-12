@@ -1,0 +1,214 @@
+<%- include('../partials/header', { title: 'Crear Nuevo Proyecto', activePage: 'gestion' }) %>
+
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header">
+      <h1 class="h4 mb-0">Crear Proyecto - <%= categoryTitle %></h1>
+    </div>
+
+    <div class="card-body">
+      <form action="/projects/<%= categoryParam %>/create" method="POST">
+        <!-- Title Field -->
+        <div class="mb-3">
+          <label for="title" class="form-label">Título del Proyecto <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+
+        <!-- Description Field -->
+        <div class="mb-3">
+          <label for="detail" class="form-label">Descripción Detallada</label>
+          <textarea class="form-control" id="detail" name="detail" rows="3"></textarea>
+        </div>
+
+        <div class="row mb-3">
+          <!-- Priority Field -->
+          <div class="col-md-6">
+            <label for="priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
+            <select class="form-select" id="priority" name="priority" required>
+              <option value="1" selected>1 - Alta</option>
+              <option value="2">2 - Media</option>
+              <option value="3">3 - Baja</option>
+              <option value="4">4 - Rechazado</option>
+              <option value="5">5 - Ajuste</option>
+              <option value="6">6 - Stand By</option>
+            </select>
+          </div>
+
+          <!-- Area Field -->
+          <% if (categoryParam !== 'isco-cargo') { %>
+          <div class="col-md-6">
+            <label for="area" class="form-label">Área <span class="text-danger">*</span></label>
+            <select class="form-select" id="area" name="area" required>
+              <% areaOptions.forEach(function(area) { %>
+              <option value="<%= area.code %>"><%= area.name %></option>
+              <% }); %>
+            </select>
+          </div>
+          <% } %>
+        </div>
+
+        <div class="row mb-3">
+          <!-- Applicant Field -->
+          <div class="col-md-6">
+            <label for="applicant" class="form-label">Solicitante <span class="text-danger">*</span></label>
+            <select class="form-select" id="applicant" name="applicant" required>
+              <% solicitantes.forEach(function(user) { %>
+              <option value="<%= user.cod_ascinsa %>">
+                <%= user.pnombre %> <%= user.apaterno %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+
+          <!-- Responsible Field -->
+          <div class="col-md-6">
+            <label for="responsible" class="form-label">Responsable(s) <span class="text-danger">*</span></label>
+            <select class="form-select" id="responsible" name="responsible" multiple>
+              <% users.forEach(function(user) { %>
+              <option value="<%= user.cod_ascinsa %>">
+                <%= user.pnombre %> <%= user.apaterno %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <!-- Start Date Field -->
+          <div class="col-md-6">
+            <label for="start_date" class="form-label">Fecha de Inicio</label>
+            <input type="date" class="form-control" id="start_date" name="start_date">
+          </div>
+          <!-- Due Date Field -->
+          <div class="col-md-6">
+            <label for="due_date" class="form-label">Fecha Límite</label>
+            <input type="date" class="form-control" id="due_date" name="due_date" required>
+          </div>
+        </div>
+
+        <% if (categoryParam === 'proyectos-ti') { %>
+        <!-- Additional Fields for Proyectos TI -->
+        <div class="row mb-3">
+          <!-- Risk Field -->
+          <div class="col-md-6">
+            <label for="risk" class="form-label">Riesgo</label>
+            <input type="text" class="form-control" id="risk" name="risk">
+          </div>
+
+          <!-- Consequence Field -->
+          <div class="col-md-6">
+            <label for="consequence" class="form-label">Consecuencia</label>
+            <input type="text" class="form-control" id="consequence" name="consequence">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <!-- Clasificador Field -->
+          <div class="col-md-6">
+            <label for="classifier" class="form-label">Clasificador</label>
+            <select class="form-select" id="classifier" name="classifier">
+              <option value="" selected disabled>Seleccionar...</option>
+              <option value="Infraestructura">Infraestructura</option>
+              <option value="Comunicaciones">Comunicaciones</option>
+              <option value="Seguridad">Seguridad</option>
+              <option value="Redes">Redes</option>
+              <option value="Soporte">Soporte</option>
+              <option value="Base de Datos">Base de Datos</option>
+              <option value="Aplicaciones">Aplicaciones</option>
+            </select>
+          </div>
+
+          <!-- Subclasificador Field -->
+          <div class="col-md-6">
+            <label for="subclassifier" class="form-label">Subclasificador</label>
+            <select class="form-select" id="subclassifier" name="subclassifier" disabled>
+              <option value="" selected>Seleccionar...</option>
+              <option value="Acondicionamiento de DC">Acondicionamiento de DC</option>
+              <option value="Energia">Energia</option>
+              <option value="Movimiento de equipos">Movimiento de equipos</option>
+              <option value="Internet">Internet</option>
+              <option value="Servicio de Correo">Servicio de Correo</option>
+              <option value="Camaras de video">Camaras de video</option>
+              <option value="Seguridad Corporativa TI">Seguridad Corporativa TI</option>
+              <option value="Afinamiento accesos">Afinamiento accesos</option>
+              <option value="Switches">Switches</option>
+              <option value="Segmentacion">Segmentacion</option>
+              <option value="Afinamiento BD">Afinamiento BD</option>
+              <option value="Estandarizacion">Estandarizacion</option>
+              <option value="Diagrama de Flujos">Diagrama de Flujos</option>
+              <option value="Contingencia BD">Contingencia BD</option>
+              <option value="Contingencia Informacion Corporativa">Contingencia Informacion Corporativa</option>
+              <option value="Servidores">Servidores</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <!-- Location Field -->
+          <div class="col-md-6">
+            <label for="location" class="form-label">Ubicación</label>
+            <select class="form-select" name="location" id="location">
+              <option value="" selected disabled>Seleccionar...</option>
+              <option value="TALARA">Talara (Aduanas)</option>
+              <option value="OQUENDO">Oquendo (Transporte)</option>
+              <option value="AMBOS">Ambas Sedes</option>
+            </select>
+          </div>
+
+          <!-- Floor Field -->
+          <div class="col-md-6">
+            <label for="floor" class="form-label">Piso</label>
+            <select class="form-select" name="floor" id="floor">
+              <option value="" selected disabled>Seleccionar...</option>
+              <option value="0">Todos</option>
+              <option value="1">1 Piso</option>
+              <option value="3">3 Piso</option>
+              <option value="4">4 Piso</option>
+            </select>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- Hidden Fields -->
+        <div class="d-none">
+          <!-- Avance Field -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="progress_percentage" class="form-label">Avance</label>
+              <input type="number" class="form-control" id="progress_percentage" name="progress_percentage" min="0" max="100">
+            </div>
+
+            <!-- Producción Field -->
+            <div class="col-md-6">
+              <label for="prod" class="form-label">Producción</label>
+              <input type="number" class="form-control" id="prod" name="prod" min="0">
+            </div>
+          </div>
+
+          <!-- Observations Field -->
+          <div class="mb-3">
+            <label for="observations" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="observations" name="observations"></textarea>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+          <a href="/projects/<%= categoryParam %>" class="btn btn-outline-secondary me-md-2">Cancelar</a>
+          <button type="submit" class="btn btn-primary">Crear Proyecto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Enable Subclasificador dropdown after selecting Clasificador
+  document.getElementById('classifier').addEventListener('change', function() {
+    const subclassifierSelect = document.getElementById('subclassifier');
+    subclassifierSelect.disabled = false;
+  });
+</script>
+
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<br>
+<%- include('../partials/footer') %>

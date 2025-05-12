@@ -1,0 +1,62 @@
+<%- include('../partials/header', { title: "Detalle de Horas", activePage: 'hour' }) %>
+
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h4><%= hour.title %></h4>
+    </div>
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-3">Usuario</dt>
+        <dd class="col-sm-9"><%= hour.full_name %></dd>
+
+        <dt class="col-sm-3">Periodo</dt>
+        <dd class="col-sm-9">
+          <%= moment(hour.date_begin).format('DD/MM/YYYY HH:mm') %> -
+          <%= moment(hour.date_closure).format('DD/MM/YYYY HH:mm') %>
+        </dd>
+
+        <dt class="col-sm-3">Horas trabajadas</dt>
+        <dd class="col-sm-9">
+          <% 
+            const hours = Math.floor(hour.hours_worked);
+            const minutes = Math.round((hour.hours_worked - hours) * 60);
+          %>
+          <%= hours %> horas <%= minutes %> minutos
+        </dd>
+
+        <dt class="col-sm-3">Razón</dt>
+        <dd class="col-sm-9"><%= hour.reason %></dd>
+        
+        <dt class="col-sm-3">Descripción</dt>
+        <dd class="col-sm-9"><%= hour.task_description %></dd>
+
+        <!-- New field: Extralaboral -->
+        <dt class="col-sm-3">Extralaboral</dt>
+        <dd class="col-sm-9"><%= hour.extralaboral %></dd>
+
+        <dt class="col-sm-3">Imagen adjunta</dt>
+        <dd class="col-sm-9">
+          <% if (hour.image_path) { %>
+          <div class="mb-3">
+            <img src="<%= hour.image_path %>" class="img-fluid rounded border" alt="Evidencia de horas" style="max-height: 300px;">
+          </div>
+          <div>
+            <a href="<%= hour.image_path %>" target="_blank" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-expand"></i> Ver en tamaño completo
+            </a>
+          </div>
+          <% } else { %>
+          <div class="alert alert-secondary mb-0">
+            <i class="fas fa-image me-2"></i> No hay imágenes adjuntas
+          </div>
+          <% } %>
+        </dd>
+      </dl>
+      <a href="/hour/view-hours" class="btn btn-primary">Volver</a>
+    </div>
+  </div>
+</div>
+<br>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

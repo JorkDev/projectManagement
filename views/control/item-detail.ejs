@@ -1,0 +1,89 @@
+<%- include('../partials/header', { title: 'Detalle de Ítem', activePage: 'control' }) %>
+
+<div class="container">
+  <h1 class="mb-4">Detalle del Ítem</h1>
+
+  <div class="row">
+    <!-- Card 1: Información General -->
+    <div class="col-md-6 mb-4 d-flex">
+      <div class="card flex-fill">
+        <div class="card-body">
+          <h2 class="h5">Información General</h2>
+          <dl class="row">
+            <dt class="col-sm-4">Requerimiento</dt>
+            <dd class="col-sm-8"><%= item.requirement %></dd>
+            <dt class="col-sm-4">Clasificador</dt>
+            <dd class="col-sm-8"><%= item.classifier %></dd>
+            <dt class="col-sm-4">Subclasificador</dt>
+            <dd class="col-sm-8"><%= item.subclassifier %></dd>
+            <dt class="col-sm-4">Cantidad</dt>
+            <dd class="col-sm-8"><%= item.quantity %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Ubicación y Detalles -->
+    <div class="col-md-6 mb-4 d-flex">
+      <div class="card flex-fill">
+        <div class="card-body">
+          <h2 class="h5">Ubicación y Detalles</h2>
+          <dl class="row">
+            <dt class="col-sm-4">Ubicación</dt>
+            <dd class="col-sm-8"><%= item.location %></dd>
+            <dt class="col-sm-4">Piso</dt>
+            <dd class="col-sm-8"><%= item.floor || '-' %></dd>
+            <dt class="col-sm-4">Detalle</dt>
+            <dd class="col-sm-8"><%= item.detail %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Card 3: Información Adicional -->
+    <div class="col-md-4 mb-4 d-flex">
+      <div class="card flex-fill">
+        <div class="card-body">
+          <h2 class="h5">Información Adicional</h2>
+          <dl class="row">
+            <dt class="col-sm-4">Prioridad</dt>
+            <dd class="col-sm-8"><%= item.priority %></dd>
+            <dt class="col-sm-4">Área</dt>
+            <dd class="col-sm-8"><%= item.area %></dd>
+            <dt class="col-sm-4">Solicitante</dt>
+            <dd class="col-sm-8"><%= item.applicant %></dd>
+            <dt class="col-sm-4">Responsable TI</dt>
+            <dd class="col-sm-8"><%= item.responsible_ti %></dd>
+            <dt class="col-sm-4">Avance (%)</dt>
+            <dd class="col-sm-8"><%= item.progress_percentage %> %</dd>
+            <dt class="col-sm-4">Observaciones</dt>
+            <dd class="col-sm-8"><%= item.observations %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Google Sheet -->
+    <div class="col-md-8 mb-4 d-flex">
+      <div class="card flex-fill">
+        <div class="card-body">
+          <h2 class="h5">Detalles</h2>
+          <% if (item.iframe) { %>
+            <iframe src="<%= item.iframe %>" width="100%" height="260" frameborder="0" style="border: 0;">
+            </iframe>
+          <% } else { %>
+            <div class="alert alert-warning" role="alert">
+              No hay tablas para este item.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <a href="/control" class="btn btn-secondary">Volver</a>
+</div>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

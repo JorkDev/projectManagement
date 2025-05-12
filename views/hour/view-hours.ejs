@@ -1,0 +1,110 @@
+<%- include('../partials/header', { title: title, activePage: 'hour' }) %>
+
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800"><%= title %></h1>
+        <p class="mb-4">
+          En este apartado se encuentra los registros de <b>horas trabajadas</b>...
+        </p>
+        
+        <% if (success_msg.length > 0) { %>
+        <div id="flash-success" class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+        <% if (error_msg.length > 0) { %>
+        <div id="flash-error" class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+
+        <script>
+          setTimeout(() => {
+            const successFlash = document.getElementById('flash-success');
+            const errorFlash = document.getElementById('flash-error');
+            if (successFlash) {
+              successFlash.style.transition = 'opacity 0.5s';
+              successFlash.style.opacity = '0';
+              setTimeout(() => successFlash.remove(), 500);
+            }
+            if (errorFlash) {
+              errorFlash.style.transition = 'opacity 0.5s';
+              errorFlash.style.opacity = '0';
+              setTimeout(() => errorFlash.remove(), 500);
+            }
+          }, 3000);
+        </script>
+
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-dark">Lista de Horas</h6>
+            <% if (user && user.cod_ascinsa) { %>
+            <div>
+              <a href="/hour/log-hours" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Horas
+              </a>
+              <a href="/hour/generate-report" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm">
+                <i class="fas fa-file-alt fa-sm text-white-50"></i> Generar Reporte
+              </a>
+            </div>
+            <% } %>
+          </div>
+          <div class="card-body">
+            <% if (hours.length === 0) { %>
+            <div class="alert alert-info">No hay horas registradas.</div>
+            <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Técnico</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Solicitado Por</th>
+                    <th>Extralaboral</th>
+                    <th>Horas</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% hours.forEach(function(hour) { %>
+                  <tr>
+                    <td><%= hour.title %></td>
+                    <td><%= hour.full_name %></td>
+                    <td><%= moment(hour.date_begin).format('DD/MM/YYYY HH:mm') %></td>
+                    <td><%= moment(hour.date_closure).format('DD/MM/YYYY HH:mm') %></td>
+                    <td><%= hour.requested_by %></td>
+                    <td><%= hour.extralaboral %></td>
+                    <td>
+                      <%= Math.floor(hour.hours_worked) %>h <%= Math.round((hour.hours_worked % 1) * 60) %>m
+                    </td>
+                    <td>
+                      <a href="/hour/view/<%= hour.id %>" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="/hour/edit/<%= hour.id %>" 
+                         class="btn btn-sm btn-warning <%= !(user && hour.user_code && String(user.cod_ascinsa).trim().toUpperCase() === String(hour.user_code).trim().toUpperCase()) ? 'disabled' : '' %>">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form action="/hour/delete/<%= hour.id %>" method="POST" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-danger" 
+                                <%= !(user && hour.user_code && String(user.cod_ascinsa).trim().toUpperCase() === String(hour.user_code).trim().toUpperCase()) ? 'disabled' : '' %>
+                                onclick="return confirm('¿Eliminar este registro?')">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

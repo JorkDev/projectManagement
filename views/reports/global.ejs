@@ -1,0 +1,59 @@
+<%- include('../partials/header', { title: 'Reportes Globales', activePage: 'reports' }) %>
+
+<div class="container mt-4">
+  <h1 class="h3 mb-3 text-gray-800">Reportes Globales</h1>
+
+  <% if (success_msg && success_msg.length) { %>
+    <div class="alert alert-success"><%= success_msg[0] %></div>
+  <% } %>
+
+  <a href="/reports/global/upload" class="btn btn-primary mb-3">
+    <i class="fas fa-upload"></i> Subir Reporte Global
+  </a>
+
+  <div class="card shadow">
+    <div class="card-body">
+      <% if (!rows.length) { %>
+        <div class="alert alert-info">No hay reportes globales.</div>
+      <% } else { %>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Archivo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.forEach(r => { %>
+              <tr>
+                <td><%= moment(r.report_date).format('YYYY-MM-DD') %></td>
+                <td><%= r.original_name %></td>
+                <td>
+                  <!-- Open in new tab -->
+                  <a href="/uploads/reports/global/<%= r.file_name %>" 
+                     class="btn btn-sm btn-info" 
+                     target="_blank" 
+                     title="Ver en línea">
+                    <i class="fas fa-eye"></i> Ver
+                  </a>
+
+                  <!-- Download file -->
+                  <a href="/uploads/reports/global/<%= r.file_name %>" 
+                     class="btn btn-sm btn-success" 
+                     download 
+                     title="Descargar">
+                    <i class="fas fa-download"></i> Descargar
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+<br>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

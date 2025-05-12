@@ -1,0 +1,69 @@
+<%- include('../partials/header', { title: 'Reportes por Responsable', activePage: 'reports' }) %>
+<% 
+  const users = {
+    VJA001: 'VICTOR JULCA',
+    JRB001: 'JUAN RECOBA',
+    KVA001: 'KEVYN VALVERDE',
+    MSA001: 'JEAN SEMINARIO',
+    ERA001: 'RICK ROJAS',
+    LJP001: 'LUIS JARA',
+    WAC001: 'WILFREDO ARGOTE',
+    LQM001: 'FERNANDO QUINTANA',
+    WOC001: 'WILLY OSORIO',
+    GCC003: 'GILMAR CHAVEZ',
+    EJQ001: 'EDUARDO JAREZ'
+  };
+%>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Reportes por Responsable</h1>
+    <!-- Botón de subida -->
+    <a href="/reports/my/upload" class="btn btn-primary">
+      <i class="fas fa-upload"></i> Subir Reporte
+    </a>
+  </div>
+
+  <% if (success_msg && success_msg.length) { %>
+    <div class="alert alert-success"><%= success_msg[0] %></div>
+  <% } %>
+
+  <div class="row">
+    <% Object.entries(users).forEach(([code, name]) => {
+         const userRows = rows.filter(r => r.user_code === code);
+    %>
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">
+            <%= name %> (<%= code %>)
+          </div>
+          <div class="card-body d-flex flex-column">
+            <% if (userRows.length) { %>
+              <label for="select-<%= code %>" class="form-label">Selecciona fecha</label>
+              <select 
+                id="select-<%= code %>" 
+                class="form-select mb-2"
+                onchange="if(this.value) window.open(this.value,'_blank')"
+              >
+                <option value="">--</option>
+                <% userRows.forEach(r => { %>
+                  <option value="/uploads/reports/users/<%= r.file_name %>">
+                    <%= moment(r.report_date).format('YYYY-MM-DD') %>
+                  </option>
+                <% }) %>
+              </select>
+              <small class="text-muted mt-auto">
+                Último: <%= moment(userRows[0].report_date).fromNow() %>
+              </small>
+            <% } else { %>
+              <p class="text-muted">No hay reportes.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

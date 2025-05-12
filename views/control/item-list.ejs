@@ -1,0 +1,93 @@
+<%- include('../partials/header', { title: 'Control Interno', activePage: 'control' }) %>
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Control Interno</h1>
+        <p class="mb-4">
+          En este apartado se encuentra un <b>inventariado completo</b> que se encuentra actualmente bajo
+          gestión del área de sistemas...
+        </p>
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-dark">Lista General</h6>
+            <div class="d-flex align-items-center gap-2">
+              <a href="/control/create" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Item
+              </a>
+              <a href="/control/report" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm">
+                <i class="fas fa-file-alt fa-sm text-white-50"></i> Generar Reporte
+              </a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th style="width: 420px;">Requerimiento</th>
+                    <th>Clasificador</th>
+                    <th>Subclasificador</th>
+                    <th>Cantidad</th>
+                    <th>Locación</th>
+                    <th>Avance</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (controls && controls.length > 0) { %>
+                  <% controls.forEach(control => { %>
+                  <tr>
+                    <td><%= control.requirement %></td>
+                    <td><%= control.classifier %></td>
+                    <td><%= control.subclassifier %></td>
+                    <td><%= control.quantity %></td>
+                    <td><%= control.location %></td>
+                    <td>
+                      <div class="progress" style="height: 20px; position: relative;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: <%= control.progress_percentage %>%;" aria-valuenow="<%= control.progress_percentage %>" aria-valuemin="0" aria-valuemax="100">
+                          <span style="position: absolute; width: 100%; text-align: center; color: white; font-weight: bold; text-shadow: 1px 0 #4b4b4b, -1px 0 #4b4b4b, 0 1px #4b4b4b, 0 -1px #4b4b4b,1px 1px #4b4b4b, -1px -1px #4b4b4b, 1px -1px #4b4b4b, -1px 1px #4b4b4b;">
+                            <%= control.progress_percentage %>%
+                          </span>
+                        </div>
+                        <span style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-weight: bold; color: #555555; text-shadow: 2px 0 #000000, -2px 0 #000000, 0 2px #000000, 0 -2px #000000,1px 1px #000000, -1px -1px #000000, 1px -1px #000000, -1px 1px #000000;">
+                          <%= control.progress_percentage %>%
+                        </span>
+                      </div>
+                    </td>
+                    <td style="display: flex; gap: 10px; justify-content: center;">
+                      <!-- View action -->
+                      <a href="/control/<%= control.id %>" class="btn btn-sm btn-info" title="Ver Detalle">
+                        <i class="fas fa-eye"></i>
+                      </a>
+
+                      <!-- Edit action -->
+                      <a href="/control/<%= control.id %>/edit" class="btn btn-sm btn-warning" title="Editar">
+                        <i class="fas fa-pencil-ruler"></i>
+                      </a>
+                      <!-- Delete action (using form for POST) -->
+                      <form action="/control/<%= control.id %>/delete" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este ítem?')">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+
+                  </tr>
+                  <% }); %>
+                  <% } else { %>
+                  <tr>
+                    <td colspan="7" class="text-center">No hay ítems registrados</td>
+                  </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

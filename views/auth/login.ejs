@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="icon" href="/img/favicon.ico">
+  <title>Iniciar Sesión</title>
+  <link rel="canonical" href="http://172.16.105.7:6248/login">
+  <!-- Use local CSS or CDN -->
+  <link href="/css/4.0/bootstrap.min.css" rel="stylesheet">
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
+      background-color: #f5f5f5;
+    }
+
+    .form-signin {
+      width: 100%;
+      max-width: 330px;
+      padding: 15px;
+      margin: 0 auto;
+    }
+
+    .form-signin .checkbox {
+      font-weight: 400;
+    }
+
+    .form-signin .form-control {
+      position: relative;
+      box-sizing: border-box;
+      height: auto;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .form-signin .form-control:focus {
+      z-index: 2;
+    }
+  </style>
+</head>
+
+<body class="text-center">
+  <form class="form-signin" action="/auth/login" method="POST" id="loginForm">
+    <img class="mb-4" src="/img/logo.png" alt="Logo" width="172" height="100">
+    <h1 class="h3 mb-3 font-weight-normal">Por favor inicie sesión</h1>
+    <% if (error) { %>
+      <div class="alert alert-danger">
+        <%= error %>
+      </div>
+      <% } %>
+        <label for="username" class="sr-only">Código de Usuario</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Código de Usuario"
+          oninput="this.value = this.value.toUpperCase()" required autofocus>
+        <br>
+        <label for="password" class="sr-only">Contraseña</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required>
+        <br>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Iniciar Sesión</button>
+        <p class="mt-5 mb-3 text-muted">&copy; 2025</p>
+  </form>
+
+  <!-- Add jQuery and custom script -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...');
+  
+        // Submit form normally (not via AJAX) since we're handling redirects server-side
+        this.submit();
+      });
+  
+      // Auto-focus username field
+      $('#username').focus();
+    });
+
+    // Ensure all AJAX requests include the token
+    $.ajaxSetup({
+      beforeSend: function(xhr) {
+        const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1');
+        if (token) {
+          xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

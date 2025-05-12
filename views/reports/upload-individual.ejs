@@ -1,0 +1,39 @@
+<%- include('../partials/header', { title: 'Subir Reporte Individual', activePage: 'reports' }) %>
+
+<div class="container mt-4">
+  <h1 class="h3 mb-3 text-gray-800">Subir Reporte Individual</h1>
+  <form action="/reports/my/upload" method="POST" enctype="multipart/form-data">
+    <!-- Selector de Usuario -->
+    <div class="mb-3">
+      <label for="user_code" class="form-label">Responsable</label>
+      <select class="form-select" id="user_code" name="user_code" required>
+        <option value="" disabled selected>Seleccionar usuario...</option>
+        <% Object.entries(users).forEach(([code, name]) => { %>
+        <option value="<%= code %>">
+          <%= name %> (<%= code %>)
+        </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- Fecha del Reporte -->
+    <div class="mb-3">
+      <label for="report_date" class="form-label">Fecha del Reporte</label>
+      <input type="date" id="report_date" name="report_date" class="form-control" required>
+    </div>
+
+    <!-- Archivo -->
+    <div class="mb-3">
+      <label for="report_file" class="form-label">Selecciona Archivo</label>
+      <input type="file" id="report_file" name="report_file" class="form-control" accept=".pdf,.xlsx,.csv" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-upload"></i> Subir
+    </button>
+    <a href="/reports/my" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

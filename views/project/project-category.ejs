@@ -1,0 +1,356 @@
+<%- include('../partials/header', { title: categoryTitle, activePage: 'gestion' }) %>
+
+<style>
+  .card-header.py-3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .first-col {
+    width: 300px;
+  }
+
+  .table-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .alert {
+    margin-bottom: 1rem;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    display: none;
+  }
+
+  .isDisabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    text-decoration: none;
+    pointer-events: none;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .manual-highlight-yellow td {
+    background-color: #ffec42 !important;
+  }
+
+  .manual-highlight-red td {
+    background-color: #fb8585 !important;
+  }
+
+  #contextMenu {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    min-width: 150px;
+  }
+
+  #contextMenu ul {
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+  }
+
+  #contextMenu ul li {
+    padding: 8px 15px;
+    cursor: pointer;
+  }
+
+  #contextMenu ul li:hover {
+    background: #f5f5f5;
+  }
+</style>
+</style>
+
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+
+        <!-- Flash Messages - Updated with safer checks -->
+        <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <%= success_msg %>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <% } %>
+
+        <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error_msg %>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <% } %>
+
+        <h1 class="h3 mb-0 text-gray-800">
+          <%= categoryTitle %>
+        </h1>
+        <p class="mb-4">
+          <%= categoryDesc %> Puedes leer más sobre el uso de este apartado en <a href="/docs">la documentación.</a>
+        </p>
+
+        <!-- Content Row -->
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-dark">Lista General</h6>
+                <div class="d-flex align-items-center gap-2">
+                  <% if (isAdmin) { %>
+                  <a href="/projects/<%= categoryParam %>/create" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Proyecto
+                  </a>
+                  <% } else { %>
+                  <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" disabled>
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Proyecto
+                  </button>
+                  <% } %>
+                  <a 
+                    href="/reports/pdf/<%= categoryParam %>" 
+                    target="_blank" 
+                    class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"
+                  >
+                    <i class="fas fa-file-alt fa-sm text-white-50"></i>
+                    Generar Informe PDF
+                  </a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered" width="100%" cellspacing="0" id="dataTable">
+                    <thead>
+                      <tr>
+                        <% columns.forEach(function(col, idx) { %>
+                        <th class="<%= idx === 0 ? 'first-col' : '' %>">
+                          <%= col %>
+                        </th>
+                        <% }); %>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% 
+                        const userMap = {};
+                        users.forEach(user => {
+                          userMap[user.cod_ascinsa] = `${user.pnombre} ${user.apaterno}`;
+                        });
+                      %>
+
+                      <% projects.forEach(function(project) { %>
+                      <tr>
+                        <% columns.forEach(function(col) { 
+                              const key = columnKeyMap[col] || 
+                                        col.toLowerCase()
+                                           .replace(/\s+/g, '_')
+                                           .replace(/[()]/g, '')
+                                           .replace(/,/g, '')
+                                           .replace(/-/g, '_');
+                          %>
+                        <td class="<%= key === 'priority' ? 'text-center' : '' %>">
+                          <% if (key === 'priority') { %>
+                          <% 
+                              const priorityLabels = {
+                                1: { text: 'Alta', class: 'badge-danger' },
+                                2: { text: 'Media', class: 'badge-warning' },
+                                3: { text: 'Baja', class: 'badge-success' },
+                                4: { text: 'Rechazado', class: 'badge-dark' },
+                                5: { text: 'Ajuste', class: 'badge-info' },
+                                6: { text: 'Standby', class: 'badge-secondary' }
+                              };
+                              const priority = priorityLabels[project[key]] || { text: project[key], class: 'badge-light' };
+                            %>
+                          <span style="padding: 4px 20px;" class="badge <%= priority.class %>"><%= priority.text %></span>
+                          <% } else if (key === 'prod') { %>
+                          <%= project[key] == 0 ? 'No' : 'Sí' %>
+                          <% } else if (key === 'progress_percentage') { %>
+                          <%= project[key] != null ? project[key] + '%' : '0%' %>
+                          <% } else if (key === 'area') { %>
+                          <% const area = areaOptions.find(a => a.code === project[key]) %>
+                          <%= area ? area.name : project[key] %>
+                          <% } else if (key === 'responsible') { %>
+                          <% 
+                              // Handle both JSON arrays and comma-separated strings
+                              let responsibleNames = [];
+                              const responsibleValue = project[key];
+                              
+                              if (responsibleValue) {
+                                try {
+                                  // Try to parse as JSON first
+                                  const parsed = JSON.parse(responsibleValue);
+                                  if (Array.isArray(parsed)) {
+                                    responsibleNames = parsed.map(cod => userMap[cod] || cod);
+                                  } else {
+                                    responsibleNames = [userMap[parsed] || parsed];
+                                  }
+                                } catch (e) {
+                                  // Fall back to comma-separated if not JSON
+                                  responsibleNames = responsibleValue.split(',')
+                                    .map(cod => userMap[cod.trim()] || cod.trim());
+                                }
+                              }
+                            %>
+                          <%= responsibleNames.join(', ') || '-' %>
+                          <% } else if (key === 'applicant') { %>
+                          <%= project.applicantNames || userMap[project[key]] || project[key] || '-' %>
+                          <% } else { %>
+                          <%= project[key] || '-' %>
+                          <% } %>
+                        </td>
+                        <% }); %>
+                        <td class="table-actions">
+                          <a href="/projects/<%= categoryParam %>/<%= project.id %>" class="btn btn-sm btn-info" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          <% if (isAdmin) { %>
+                          <a href="/projects/<%= categoryParam %>/<%= project.id %>/edit" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          <form action="/projects/<%= categoryParam %>/<%= project.id %>/delete" method="POST" style="display:inline;">
+                            <% if (csrfToken) { %>
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <% } %>
+                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este proyecto?');">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </form>
+                          <% } else { %>
+                          <button class="btn btn-sm btn-warning isDisabled" title="Editar" disabled>
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn btn-sm btn-danger isDisabled" title="Eliminar" disabled>
+                            <i class="fas fa-trash"></i>
+                          </button>
+                          <% } %>
+                        </td>
+                      </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="contextMenu">
+  <ul>
+    <li data-action="highlight-yellow">Marcador Amarillo</li>
+    <li data-action="highlight-red">Marcador Rojo</li>
+    <li data-action="remove-highlight">Remover Marcador</li>
+  </ul>
+</div>
+<!-- Bootstrap core JavaScript-->
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+<!-- Initialize DataTables -->
+<script>
+  $(document).ready(function() {
+    // Initialize DataTable only if not already initialized
+    if (!$.fn.DataTable.isDataTable('#dataTable')) {
+      $('#dataTable').DataTable({
+        "language": {
+          "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+        },
+        "columnDefs": [{
+          "orderable": false,
+          "targets": -1
+        }]
+      });
+    }
+
+    // Context menu functionality
+    const contextMenu = $('#contextMenu');
+    let selectedRow = null;
+
+    // Load saved highlights
+    function loadHighlights() {
+      $('#dataTable tbody tr').each(function() {
+        const rowId = $(this).data('id') || $(this).find('td:first').text();
+        const highlight = localStorage.getItem('highlight_' + rowId);
+        if (highlight) {
+          $(this).addClass(highlight);
+        }
+      });
+    }
+
+    // Initialize context menu
+    function initContextMenu() {
+      // Right-click handler
+      $('#dataTable tbody').on('contextmenu', 'tr', function(e) {
+        e.preventDefault();
+        selectedRow = $(this);
+
+        contextMenu.css({
+          display: 'block',
+          left: e.pageX,
+          top: e.pageY
+        });
+
+        return false;
+      });
+
+      // Hide menu when clicking elsewhere
+      $(document).on('click', function() {
+        contextMenu.hide();
+      });
+
+      // Menu item click handler
+      contextMenu.on('click', 'li', function() {
+        const action = $(this).data('action');
+        const rowId = selectedRow.data('id') || selectedRow.find('td:first').text();
+
+        // Remove existing highlights
+        selectedRow.removeClass('manual-highlight-yellow manual-highlight-red');
+
+        // Apply new highlight to entire row
+        if (action === 'highlight-yellow') {
+          selectedRow.addClass('manual-highlight-yellow');
+          localStorage.setItem('highlight_' + rowId, 'manual-highlight-yellow');
+        } else if (action === 'highlight-red') {
+          selectedRow.addClass('manual-highlight-red');
+          localStorage.setItem('highlight_' + rowId, 'manual-highlight-red');
+        } else if (action === 'remove-highlight') {
+          localStorage.removeItem('highlight_' + rowId);
+        }
+
+        contextMenu.hide();
+      });
+    }
+
+    loadHighlights();
+    initContextMenu();
+  });
+</script>
+
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

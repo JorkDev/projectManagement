@@ -1,0 +1,76 @@
+<%- include('../partials/header', { title: title, activePage: 'hour' }) %>
+
+<div class="container">
+  <h1><%= title %></h1>
+
+  <div class="alert alert-info">
+    Registrando horas para: <strong><%= user.fullName %></strong>
+    <% if (user.cod_ascinsa) { %>
+    <small class="text-muted">(Código: <%= user.cod_ascinsa %>)</small>
+    <% } %>
+  </div>
+
+  <form action="/hour/log-hours" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="full_name" value="<%= user.fullName %>">
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Título</label>
+      <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+
+    <!-- Change the "Razón de las horas" field to a text area -->
+    <div class="mb-3">
+      <label for="reason" class="form-label">Razón del Requerimiento</label>
+      <textarea class="form-control" id="reason" name="reason" rows="1" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="task_description" class="form-label">Descripción</label>
+      <textarea class="form-control" id="task_description" name="task_description" required></textarea>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="start_date" class="form-label">Fecha/Hora Inicio</label>
+        <input type="datetime-local" class="form-control" id="start_date" name="start_date" value="<%= moment().format('YYYY-MM-DDTHH:mm') %>" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="end_date" class="form-label">Fecha/Hora Fin</label>
+        <input type="datetime-local" class="form-control" id="end_date" name="end_date" value="<%= moment().add(1, 'hour').format('YYYY-MM-DDTHH:mm') %>" required>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="requested_by" class="form-label">Solicitado Por</label>
+      <select class="form-control" id="requested_by" name="requested_by" required>
+        <% bosses.forEach(b => { %>
+          <option value="<%= `${b.pnombre} ${b.apaterno}` %>"
+            <%= values.requested_by === `${b.pnombre} ${b.apaterno}` ? 'selected' : '' %>>
+            <%= `${b.pnombre} ${b.apaterno}` %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- New field: Extralaboral -->
+    <div class="mb-3">
+      <label for="extralaboral" class="form-label">Extralaboral</label>
+      <select class="form-control" id="extralaboral" name="extralaboral" required>
+        <option value="No" selected>No</option>
+        <option value="Sí">Sí</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="hour_image" class="form-label">Adjuntar imagen (opcional)</label>
+      <input type="file" class="form-control" id="hour_image" name="hour_image" accept="image/*">
+      <small class="text-muted">Formatos aceptados: JPG, PNG (Max 5MB)</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Registrar Horas</button>
+    <a href="/hour/view-hours" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+<br>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

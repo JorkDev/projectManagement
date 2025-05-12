@@ -1,0 +1,59 @@
+<%- include('partials/header', { title: categoryTitle, activePage: 'docs' }) %>
+<% var project = typeof project !== 'undefined' ? project : { tasks: [] }; %>
+<% var showField = typeof showField === 'function' ? showField : function(field){ return true; }; %>
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Documentación de la Gestión de Proyectos y Control Interno</h1>
+        <p class="mb-4">
+          Esta guía ofrece una visión completa sobre el uso del dashboard para la gestión de proyectos y
+          control interno.
+          Aquí encontrarás información práctica sobre la administración de los proyectos, seguimiento de
+          avances y
+          control de procesos internos.
+        </p>
+        <div class="mx-auto col-lg-15 col-xl-15">
+          <div id="introduction" class="mb-4">
+            <p class="text-sm">
+              Esta herramienta ha sido diseñada para optimizar la gestión de
+              proyectos y facilitar el control interno mediante el uso de modernas tecnologías web
+              como
+              <strong>Bootstrap 5</strong>, <strong>HTML5</strong>, <strong>CSS3</strong> y
+              <strong>jQuery</strong>.
+              Utiliza esta documentación para aprender rápidamente a gestionar tus proyectos,
+              configurar
+              reportes y personalizar herramientas según las necesidades de tu organización.
+            </p>
+            <p class="text-sm">
+              La guía incluye secciones detalladas que te ayudarán a familiarizarte con la estructura
+              del dashboard,
+              te mostrará cómo implementar cambios en el código fuente y cómo adaptar la solución para
+              mejorar
+              tus procesos internos.
+            </p>
+          </div>
+          <div id="table-of-contents" class="mb-5">
+            <h3>Contenido</h3>
+            <p class="text-sm">
+              <li><a href="/docs-installation">Inicio</a></li>
+              <li><a href="/docs-customization">Personalización</a></li>
+              <li><a href="/docs-plugins">Integraciones</a></li>
+              <li><a href="/docs-changelog">Historial de cambios</a></li>
+              </ul>
+          </div>
+          <div id="something-missing" class="mb-5">
+            <h3>¿Falta algo?</h3>
+            <p class="text-sm">
+              Si crees que la guía puede mejorar o hay algún aspecto que no se ha cubierto
+              adecuadamente en la
+              documentación, por favor envíanos tus sugerencias a través de un correo (<a href="mailto:support@bootlab.io">ejarez@isco.com.pe</a>).
+              Tu retroalimentación es muy importante para nosotros.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

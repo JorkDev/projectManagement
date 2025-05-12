@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title><%= categoryTitle %> — Informe PDF</title>
+  <style>
+    @page {
+      margin: 10mm
+    }
+
+    .pdf-page {
+      width: 100%;
+      min-height: 100%;
+      background: #fff;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: none;
+      font-family: sans-serif;
+      color: #333;
+    }
+
+    h1,
+    p {
+      text-align: center
+    }
+
+    p {
+      margin: .2em 0 1.5em;
+      font-size: .9em
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .summary-card {
+      grid-column: span 3
+    }
+
+    .chart {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: .5rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      position: relative;
+      height: 250px;
+    }
+
+    .chart canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .line-chart {
+      grid-column: span 12;
+      height: 400px
+    }
+
+    .bar-chart {
+      grid-column: span 6
+    }
+
+    .area-chart {
+      grid-column: span 6
+    }
+
+    .table-container {
+      page-break-before: always;
+      break-before: page;
+      grid-column: span 12;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85em;
+    }
+
+    th,
+    td {
+      border: 1px solid #666;
+      padding: 6px 8px;
+    }
+
+    th {
+      background: #f0f0f0;
+      text-align: left;
+    }
+
+    .text-center {
+      text-align: center
+    }
+  </style>
+</head>
+
+<body>
+  <div class="pdf-page">
+    <h1><%= categoryTitle %></h1>
+    <p><%= categoryDesc %></p>
+
+    <div class="dashboard">
+      <div class="card summary-card" id="card-total"></div>
+      <div class="card summary-card" id="card-avg"></div>
+      <div class="card summary-card" id="card-prod"></div>
+      <div class="card summary-card" id="card-high"></div>
+
+      <div class="chart line-chart">
+        <canvas id="lineChart"></canvas>
+      </div>
+      <div class="chart bar-chart">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="chart area-chart">
+        <canvas id="areaChart"></canvas>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <% columns.forEach(col => { %>
+            <th><%= col %></th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% projects.forEach(p => { %>
+          <tr>
+            <% columns.forEach(col => {
+                   const key = columnKeyMap[col];
+              %>
+            <td class="<%= ['priority','prod','progress_percentage'].includes(key)?'text-center':'' %>">
+              <% if (key==='applicant') { %>
+              <%= p.applicantNames||'-' %>
+              <% } else if (key==='responsible') { %>
+              <%= p.responsibleNames||'-' %>
+              <% } else if (key==='progress_percentage') { %>
+              <%= (p[key]||0)+'%' %>
+              <% } else if (key==='prod') { %>
+              <%= p.prod==1?'Sí':'No' %>
+              <% } else { %>
+              <%= p[key]!=null?p[key]:'-' %>
+              <% } %>
+            </td>
+            <% }) %>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    Chart.register(ChartDataLabels);
+    const projects = <%- JSON.stringify(projects) %>;
+
+    // summary cards
+    const total = projects.length;
+    const avg = Math.round(projects.reduce((s, p) => s + (p.progress_percentage || 0), 0) / total);
+    const prodCount = projects.filter(p => p.prod == 1).length;
+    const highCount = projects.filter(p => p.priority == 1).length;
+    document.getElementById('card-total').innerHTML = `<h3>Total<br>${total}</h3>`;
+    document.getElementById('card-avg').innerHTML = `<h3>Avance Prom.<br>${avg}%</h3>`;
+    document.getElementById('card-prod').innerHTML = `<h3>En Producción<br>${prodCount}</h3>`;
+    document.getElementById('card-high').innerHTML = `<h3>Alta Prioridad<br>${highCount}</h3>`;
+
+    // line chart - updated to show all points and labels
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: projects.map(p => p.title),
+        datasets: [{
+          data: projects.map(p => p.progress_percentage || 0), // Ensure no null/undefined values
+          borderColor: 'rgba(54,162,235,1)',
+          backgroundColor: 'rgba(54,162,235,0.6)',
+          fill: false,
+          tension: 0.3,
+          pointRadius: projects.map(() => 5), // Fixed radius for all points
+          pointHoverRadius: 7,
+          pointBackgroundColor: 'rgba(54,162,235,1)',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Progreso por Proyecto',
+            color: '#fff',
+          },
+          datalabels: {
+            display: true,
+            anchor: 'end',
+            align: 'top',
+            formatter: function(v) {
+              return v + '%'; // Show percentage even for 0
+            },
+            font: {
+              weight: 'bold',
+              size: 10
+            },
+            color: function(context) {
+              return context.dataset.data[context.dataIndex] === 0 ?
+                'rgba(0, 0, 0, 1)' : // color for zero values
+                'rgba(0, 0, 0, 1)'; // same color for others
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                size: 8
+              },
+              autoSkip: false,
+              maxRotation: 90,
+              minRotation: 0
+            }
+          },
+          y: {
+            beginAtZero: true,
+            min: 0,
+            max: 100,
+            ticks: {
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        },
+        elements: {
+          line: {
+            spanGaps: false // ensures the line connects through all points
+          }
+        }
+      }
+    });
+
+    // bar chart
+    const priorityCounts = projects.reduce((acc, p) => {
+      acc[p.priority] = (acc[p.priority] || 0) + 1;
+      return acc;
+    }, {});
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(priorityCounts).map(k => 'P' + k),
+        datasets: [{
+          data: Object.values(priorityCounts),
+          backgroundColor: 'rgba(54,162,235,0.6)',
+          borderColor: 'rgba(54,162,235,1)',
+          borderWidth: 1,
+          barThickness: 30
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Conteo por Prioridad'
+          },
+          legend: {
+            display: false
+          },
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            font: {
+              weight: 'bold'
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            stepSize: 1
+          },
+          x: {
+            ticks: {
+              autoSkip: false,
+              font: {
+                size: 8
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // doughnut chart
+    const areaCounts = projects.reduce((acc, p) => {
+      acc[p.area] = (acc[p.area] || 0) + 1;
+      return acc;
+    }, {});
+    new Chart(document.getElementById('areaChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(areaCounts),
+        datasets: [{
+          data: Object.values(areaCounts),
+          backgroundColor: [
+            'rgba(54,162,235,0.6)',
+            'rgba(255,99,132,0.6)',
+            'rgba(255,206,86,0.6)',
+            'rgba(75,192,192,0.6)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Proyectos por Área'
+          },
+          datalabels: {
+            color: '#fff',
+            formatter: v => v,
+            font: {
+              weight: 'bold'
+            }
+          },
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

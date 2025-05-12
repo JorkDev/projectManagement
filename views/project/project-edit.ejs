@@ -1,0 +1,158 @@
+<%- include('../partials/header', { title: categoryTitle, activePage: 'gestion' }) %>
+
+<div class="container mt-4">
+  <h1>Editar Proyecto - <%= categoryTitle %>
+  </h1>
+  <form action="/projects/<%= categoryParam %>/<%= project.id %>/edit" method="POST">
+    <!-- Título Field -->
+    <div class="mb-3">
+      <label for="title" class="form-label">Título del Proyecto <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" id="title" name="title" value="<%= project.title %>" required>
+    </div>
+
+    <!-- Descripción Field -->
+    <div class="mb-3">
+      <label for="detail" class="form-label">Descripción Detallada</label>
+      <!-- Use project.detail if available; otherwise, fallback to project.description -->
+      <textarea class="form-control" id="detail" name="detail" rows="3"><%= project.detail || project.description %></textarea>
+    </div>
+
+    <% if (categoryParam === 'proyectos-ti') { %>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="risk" class="form-label">Riesgo</label>
+        <input type="text" class="form-control" id="risk" name="risk" value="<%= project.risk %>">
+      </div>
+      <div class="col-md-6">
+        <label for="consequence" class="form-label">Consecuencia</label>
+        <input type="text" class="form-control" id="consequence" name="consequence" value="<%= project.consequence %>">
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="classifier" class="form-label">Clasificador</label>
+        <select class="form-select" id="classifier" name="classifier">
+          <option value="" disabled>Seleccionar...</option>
+          <% ['Infraestructura','Comunicaciones','Seguridad','Redes','Soporte','Base de Datos','Aplicaciones'].forEach(opt=>{ %>
+          <option value="<%=opt%>" <%= project.classifier===opt?'selected':'' %>><%=opt%></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="subclassifier" class="form-label">Subclasificador</label>
+        <select class="form-select" id="subclassifier" name="subclassifier">
+          <option value="" disabled>Seleccionar...</option>
+          <% ['Acondicionamiento de DC','Energia','Movimiento de equipos','Internet','Servicio de Correo','Camaras de video','Seguridad Corporativa TI','Afinamiento accesos','Switches','Segmentacion','Afinamiento BD','Estandarizacion','Diagrama de Flujos','Contingencia BD','Contingencia Informacion Corporativa','Servidores']
+               .forEach(opt=>{ %>
+          <option value="<%=opt%>" <%= project.subclassifier===opt?'selected':'' %>><%=opt%></option>
+          <% }); %>
+        </select>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="location" class="form-label">Ubicación</label>
+        <select class="form-select" id="location" name="location">
+          <option value="" disabled>Seleccionar...</option>
+          <option value="AMBOS" <%=project.location==='AMBOS' ?'selected':'' %>>Ambas Sedes</option>
+          <option value="TALARA" <%=project.location==='TALARA' ?'selected':'' %>>Talara (Aduanas)</option>
+          <option value="OQUENDO" <%=project.location==='OQUENDO' ?'selected':'' %>>Oquendo (Transporte)</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="floor" class="form-label">Piso</label>
+        <select class="form-select" id="floor" name="floor">
+          <option value="" disabled>Seleccionar...</option>
+          <option value="0" <%=project.floor==0 ? 'selected' : '' %>>Todos</option>
+          <option value="1" <%=project.floor==1 ? 'selected' : '' %>>1 Piso</option>
+          <option value="3" <%=project.floor==3 ? 'selected' : '' %>>3 Piso</option>
+          <option value="4" <%=project.floor==4 ? 'selected' : '' %>>4 Piso</option>
+        </select>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Prioridad Field -->
+    <div class="mb-3">
+      <label for="priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
+      <select class="form-select" id="priority" name="priority" required>
+        <option value="1" <%=project.priority==1 ? "selected" : "" %>>1 - Alta</option>
+        <option value="2" <%=project.priority==2 ? "selected" : "" %>>2 - Media</option>
+        <option value="3" <%=project.priority==3 ? "selected" : "" %>>3 - Baja</option>
+        <option value="4" <%=project.priority==4 ? "selected" : "" %>>4 - Rechazado</option>
+        <option value="5" <%=project.priority==5 ? "selected" : "" %>>5 - Ajuste</option>
+        <option value="6" <%=project.priority==6 ? "selected" : "" %>>6 - Stand By</option>
+      </select>
+    </div>
+
+    <!-- Avance Field (Range Input) -->
+    <div class="mb-3">
+      <label for="progress_percentage" class="form-label">Avance (%)</label>
+      <input type="range" class="form-range" id="progress_percentage" name="progress_percentage" min="0" max="100" value="<%= project.progress_percentage || 0 %>">
+      <span id="progress_value">
+        <%= project.progress_percentage || 0 %>%
+      </span>
+      <script>
+        document.getElementById('progress_percentage').addEventListener('input', function() {
+          document.getElementById('progress_value').innerText = this.value + '%';
+        });
+      </script>
+    </div>
+
+    <!-- Producción Field -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="prod" class="form-label">Producción</label>
+        <select class="form-select" id="prod" name="prod">
+          <option value="0" <%=project.prod==0 ? "selected" : "" %>>No</option>
+          <option value="1" <%=project.prod==1 ? "selected" : "" %>>Sí</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="end_date" class="form-label">Fecha de Finalización</label>
+        <input type="date" class="form-control" id="end_date" name="end_date" value="<%= project.end_date ? new Date(project.end_date).toISOString().split('T')[0] : '' %>">
+      </div>
+    </div>
+
+    <!-- Observaciones Field -->
+    <div class="mb-3">
+      <label for="observations" class="form-label">Observaciones</label>
+      <textarea class="form-control" id="observations" name="observations" rows="3"><%= project.observations %></textarea>
+    </div>
+
+    <!-- Solicitante Field -->
+    <div class="mb-3">
+      <label for="applicant" class="form-label">Solicitante <span class="text-danger">*</span></label>
+      <select class="form-select" id="applicant" name="applicant" required>
+        <% solicitantes.forEach(function(user) { %>
+        <option value="<%= user.cod_ascinsa %>" <%=project.applicant===user.cod_ascinsa ? "selected" : "" %>>
+          <%= user.pnombre %>
+          <%= user.apaterno %>
+        </option>
+        <% }); %>
+      </select>
+    </div>
+
+    <!-- Responsables Field -->
+    <div class="mb-3">
+      <label for="responsible" class="form-label">Responsable(s) <span class="text-danger">*</span></label>
+      <select class="form-select" id="responsible" name="responsible" multiple required>
+        <% users.forEach(function(user) { const selected=Array.isArray(project.responsible) ?
+            project.responsible.includes(user.cod_ascinsa) : false; %>
+        <option value="<%= user.cod_ascinsa %>" <%=selected ? "selected" : "" %>>
+          <%= user.pnombre %>
+          <%= user.apaterno %>
+        </option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <a href="/projects/<%= categoryParam %>" class="btn btn-secondary me-md-2">Cancelar</a>
+      <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </div>
+  </form>
+</div>
+<br>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

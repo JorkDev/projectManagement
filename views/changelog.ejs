@@ -1,0 +1,104 @@
+<%- include('partials/header', { title: categoryTitle, activePage: 'changelog' }) %>
+<% var project = typeof project !== 'undefined' ? project : { tasks: [] }; %>
+<% var showField = typeof showField === 'function' ? showField : function(field){ return true; }; %>
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Historial de Cambios</h1>
+        <p class="mb-4">En este apartado se encuentran listados <b>todos los cambios</b> relacionados con el control de requerimientos, inventario interno y proyectos del área de sistemas y la empresa. Para más información, consulta la <a target="_blank" href="/docs">documentación</a>.</p>
+        <div class="container py-5">
+          <div class="row justify-content-center">
+            <div class="col-lg-8">
+              <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-primary version-badge me-2">v2.0.0</span>
+                    <small class="text-muted">05 de Abril de 2025</small>
+                  </div>
+
+                  <h5 class="card-title">Lanzamiento Principal: Optimización de Rendimiento</h5>
+
+                  <div class="position-relative">
+                    <div class="changelog-item mb-3">
+                      <div class="timeline-line"></div>
+                      <h6 class="fw-bold text-success">Añadido</h6>
+                      <p>Interfaz de tablero con análisis en tiempo real</p>
+                      <p>Funcionalidad avanzada de búsqueda con filtros</p>
+                    </div>
+
+                    <div class="changelog-item mb-3">
+                      <div class="timeline-line"></div>
+                      <h6 class="fw-bold text-danger">Corregido</h6>
+                      <p>Problemas de responsividad en dispositivos móviles</p>
+                      <p>Optimización de base de datos para consultas más rápidas</p>
+                    </div>
+
+                    <div class="changelog-item">
+                      <h6 class="fw-bold text-warning">Cambiado</h6>
+                      <p>Componentes de UI actualizados para el nuevo sistema de diseño</p>
+                      <p>Mejoras en el manejo de errores y retroalimentación al usuario</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-secondary version-badge me-2">v1.9.0</span>
+                    <small class="text-muted">15 de Marzo de 2025</small>
+                  </div>
+
+                  <h5 class="card-title">Actualización de Funcionalidad: Seguridad Mejorada</h5>
+
+                  <div class="position-relative">
+                    <div class="changelog-item mb-3">
+                      <div class="timeline-line"></div>
+                      <h6 class="fw-bold text-success">Añadido</h6>
+                      <p>Soporte para autenticación de dos factores</p>
+                      <p>Notificaciones por correo para eventos de seguridad</p>
+                    </div>
+
+                    <div class="changelog-item">
+                      <h6 class="fw-bold text-warning">Cambiado</h6>
+                      <p>Requisitos de contraseña actualizados para mayor seguridad</p>
+                      <p>Mejoras en la gestión de sesiones</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-secondary version-badge me-2">v1.8.5</span>
+                    <small class="text-muted">1 de Febrero de 2025</small>
+                  </div>
+
+                  <h5 class="card-title">Actualización de Mantenimiento</h5>
+
+                  <div class="position-relative">
+                    <div class="changelog-item mb-3">
+                      <div class="timeline-line"></div>
+                      <h6 class="fw-bold text-danger">Corregido</h6>
+                      <p>Corrección de errores menores y mejoras de rendimiento</p>
+                      <p>Resuelto problema con la funcionalidad de exportación de datos</p>
+                    </div>
+
+                    <div class="changelog-item">
+                      <h6 class="fw-bold text-warning">Cambiado</h6>
+                      <p>Dependencias de terceros actualizadas</p>
+                      <p>Mejoras en la documentación</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

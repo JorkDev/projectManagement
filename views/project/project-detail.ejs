@@ -1,0 +1,1507 @@
+<%- include('../partials/header', { title: categoryTitle, activePage: 'gestion' }) %>
+<% var project = typeof project !== 'undefined' ? project : { tasks: [] }; %>
+<% var showField = typeof showField === 'function' ? showField : function(field) { return true; }; %>
+<link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+<style>
+  .project-detail-card p {
+    margin-bottom: -2rem !important;
+  }
+
+  .project-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .project-title {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .project-subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .project-detail-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    height: 100%;
+    border: 1px solid #e0e0e0;
+  }
+
+  .project-detail-header {
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .project-detail-body {
+    padding: 1.5rem;
+  }
+
+  .detail-label {
+    font-weight: 600;
+    color: #34495e;
+    display: inline-block;
+    min-width: 120px;
+  }
+
+  .detail-row {
+    margin-bottom: 0.8rem;
+  }
+
+  .equal-height-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+  }
+
+  .equal-height-col {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-bottom: 30px;
+  }
+
+  .checkpoint-table,
+  .task-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  .checkpoint-table th,
+  .task-table th {
+    background-color: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .checkpoint-table td,
+  .task-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .progress-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .progress-badge-100 {
+    background-color: #28a745;
+  }
+
+  .progress-badge-80 {
+    background-color: #17a2b8;
+  }
+
+  .progress-badge-50 {
+    background-color: #ffc107;
+  }
+
+  .progress-badge-30 {
+    background-color: #fd7e14;
+  }
+
+  .progress-badge-0 {
+    background-color: #6c757d;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .status-in-progress {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .status-completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .responsible-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+
+  .responsible-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: #495057;
+    font-weight: bold;
+  }
+
+  .task-actions {
+    white-space: nowrap;
+  }
+
+  .task-actions .btn {
+    margin-right: 5px;
+  }
+
+  .user-badge {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    display: inline-block;
+  }
+
+  .priority-high {
+    color: #dc3545;
+    font-weight: bold;
+  }
+
+  .priority-medium {
+    color: #fd7e14;
+    font-weight: bold;
+  }
+
+  .priority-low {
+    color: #6c757d;
+  }
+
+  @media (max-width: 768px) {
+    .equal-height-col {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
+
+  .equal-height {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .equal-height>.col-md-8,
+  .equal-height>.col-md-4 {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .widget-card {
+    flex-grow: 1;
+  }
+
+  .horizontal-steps {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    position: relative;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    width: 100%
+  }
+
+  .horizontal-steps:before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: .2em;
+    background-color: #dee2e6;
+  }
+
+  .horizontal-steps .process-line {
+    display: block;
+    position: absolute;
+    width: 50%;
+    height: .2em;
+    background-color: #4e73df;
+  }
+
+  .horizontal-steps .horizontal-steps-content {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    position: relative;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    width: 100%
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item {
+    display: block;
+    position: relative;
+    bottom: calc(100% + 1em);
+    height: 8px;
+    width: 8px;
+    margin: 0 2em;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    color: #4e73df;
+    background-color: currentColor;
+    border: .25em solid #fafbfe;
+    border-radius: 50%;
+    z-index: 5
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item:first-child {
+    margin-left: 0
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item:last-child {
+    margin-right: 0;
+    color: #0acf97
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item span {
+    position: absolute;
+    top: calc(100% + 1em);
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: var(--ct-dark-border-subtle)
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item.current:before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 48%;
+    left: 48%;
+    padding: 1em;
+    background-color: currentColor;
+    border-radius: 50%;
+    opacity: 0;
+    z-index: -1;
+    -webkit-animation-name: animation-steps-current;
+    animation-name: animation-steps-current;
+    -webkit-animation-duration: 2s;
+    animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-out;
+    animation-timing-function: ease-out
+  }
+
+  .horizontal-steps .horizontal-steps-content .step-item.current span {
+    color: var(--ct-primary) !important
+  }
+
+  @-webkit-keyframes animation-steps-current {
+    from {
+      -webkit-transform: translate(-50%, -50%) scale(0);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1
+    }
+
+    to {
+      -webkit-transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0
+    }
+  }
+
+  @keyframes animation-steps-current {
+    from {
+      -webkit-transform: translate(-50%, -50%) scale(0);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1
+    }
+
+    to {
+      -webkit-transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .horizontal-steps .horizontal-steps-content .step-item span {
+      white-space: inherit
+    }
+  }
+</style>
+<script>
+  const users = <%- JSON.stringify(users) %>;
+  const categoryParam = "<%= categoryParam %>";
+  const projectId = "<%= project.id %>";
+</script>
+<div class="container mt-4">
+  <!-- Project Header -->
+  <div class="project-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="project-title"># <%= project.title || 'Acondicionamiento de Data Center' %></h1>
+      <div>
+        <% if (isAdmin) { %>
+        <a href="/projects/<%= categoryParam %>/<%= project.id %>/edit" class="btn btn-primary btn-sm">
+          <i class="fas fa-edit fa-sm text-white-50"></i> Editar
+        </a>
+        <% } else { %>
+        <button class="btn btn-primary btn-sm isDisabled" disabled>
+          <i class="fas fa-edit fa-sm text-white-50"></i> Editar
+        </button>
+        <% } %>
+        <a href="/projects/<%= categoryParam %>/<%= project.id %>/report" class="btn btn-danger btn-sm">
+          <i class="fas fa-file-alt fa-sm text-white-50"></i> Generar Reporte
+        </a>
+      </div>
+    </div>
+    <p class="project-subtitle">Proyecto Privado</p>
+
+    <% if (showField('applicant')) { %>
+    <div class="detail-row d-flex align-items-center">
+      <span class="detail-label">Solicitante:</span>
+      <% const applicant = project.applicantNames || project.applicant || 'No Asignado'; %>
+      <% if (applicant.trim()) { %>
+      <% const applicantId = applicant.trim(); %>
+      <% const user = users.find(u => u.cod_ascinsa === applicantId); %>
+      <% const displayName = user ? `${user.pnombre} ${user.apaterno}` : applicantId; %>
+      <div class="responsible-avatar ml-2">
+        <%= displayName.split(' ')[0].charAt(0).toUpperCase() %>
+      </div>
+      <div class="ml-2">
+        <%= displayName %>
+      </div>
+      <% } else { %>
+      <div class="responsible-avatar ml-2">?</div>
+      <div class="ml-2">No Asignado</div>
+      <% } %>
+    </div>
+    <% } %>
+    <div class="detail-row">
+      <span class="detail-label">Fecha de Inicio:</span>
+      <%= project.start_date ? new Date(project.start_date).toLocaleDateString() : 'No Especificado' %>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Fecha Límite:</span>
+      <%= project.due_date ? new Date(project.due_date).toLocaleDateString() : 'No Especificado' %>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Fecha de Cierre:</span>
+      <%= project.end_date ? new Date(project.end_date).toLocaleDateString() : 'No Especificado' %>
+    </div>
+  </div>
+
+  <!-- Progress Timeline -->
+  <div class="row justify-content-center">
+    <div class="col-lg-7 col-md-10 col-sm-11">
+      <div class="horizontal-steps mt-4 mb-4 pb-5">
+        <div class="horizontal-steps-content">
+          <div class="step-item" id="step-por-iniciar">
+            <span data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="20/08/2018 07:24 PM">Por Iniciar</span>
+          </div>
+          <div class="step-item" id="step-en-proceso">
+            <span data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="21/08/2018 11:32 AM">En Proceso</span>
+          </div>
+          <div class="step-item" id="step-culminado">
+            <span>Culminado</span>
+          </div>
+          <div class="step-item" id="step-en-produccion">
+            <span>En Producción</span>
+          </div>
+        </div>
+        <div class="process-line" id="process-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three Column Cards -->
+  <div class="equal-height-row">
+    <!-- Description Card -->
+    <div class="col-md-4 equal-height-col">
+      <div class="project-detail-card">
+        <div class="project-detail-header">Descripción</div>
+        <div class="project-detail-body">
+          <p>
+            <%= project.detail || 'Descripción del proyecto...' %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles Card -->
+    <div class="col-md-4 equal-height-col">
+      <div class="project-detail-card">
+        <div class="project-detail-header">Detalles</div>
+        <div class="project-detail-body">
+
+          <!-- Catera 1 Detalles -->
+          <% if (categoryParam === 'cartera1') { %>
+          <% if (showField('priority')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Prioridad:</span>
+            <%= project.priority == 1 ? 'Alta' : project.priority == 2 ? 'Media' : project.priority == 3 ? 'Baja' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('progress_percentage')) { %>
+          <div class="detail-row">
+            <span class="detail-label">
+              <%= categoryParam==='proyectos-ti' ? 'Culminado' : 'Avance' %>:
+            </span>
+            <%= project.progress_percentage || '0' %>%
+          </div>
+          <% } %>
+
+          <% if (showField('prod')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Producción:</span>
+            <%= project.prod == 0 ? 'No.' : project.prod == 1 ? 'Sí.' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('observations')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Observaciones:</span>
+            <%= project.observations || 'N/A' %>
+          </div>
+          <% } %>
+
+          <!-- Catera 2 Detalles -->
+          <% } else if (categoryParam === 'cartera2') { %>
+          <% if (showField('priority')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Prioridad:</span>
+            <%= project.priority == 1 ? 'Alta' : project.priority == 2 ? 'Media' : project.priority == 3 ? 'Baja' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('area')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Área:</span>
+            <%= project.area || 'No Especificada' %>
+          </div>
+          <% } %>
+          <% if (showField('progress_percentage')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Avance:</span>
+            <%= project.progress_percentage || '0' %>%
+          </div>
+          <% } %>
+          <% if (showField('prod')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Producción:</span>
+            <%= project.prod == 0 ? 'No.' : project.prod == 1 ? 'Sí.' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('observations')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Observaciones:</span>
+            <%= project.observations || 'N/A' %>
+          </div>
+          <% } %>
+
+          <!-- ISCO Cargo Detalles -->
+          <% } else if (categoryParam === 'isco-cargo') { %>
+          <% if (showField('priority')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Prioridad:</span>
+            <%= project.priority == 1 ? 'Alta' : project.priority == 2 ? 'Media' : project.priority == 3 ? 'Baja' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('area')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Área:</span>
+            <%= project.area || 'ISCO Cargo' %>
+          </div>
+          <% } %>
+          <% if (showField('progress_percentage')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Avance:</span>
+            <%= project.progress_percentage || '0' %>%
+          </div>
+          <% } %>
+
+          <!-- Proyectos TI Detalles -->
+          <% } else if (categoryParam === 'proyectos-ti') { %>
+          <% if (showField('risk')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Riesgo:</span>
+            <%= project.risk || 'N/A' %>
+          </div>
+          <% } %>
+          <% if (showField('consequence')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Consecuencia:</span>
+            <%= project.consequence || 'N/A' %>
+          </div>
+          <% } %>
+          <% if (showField('classifier')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Clasificador:</span>
+            <%= project.classifier || 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('subclassifier')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Subclasificador:</span>
+            <%= project.subclassifier || 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('location')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Ubicación:</span>
+            <%= project.location || 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('floor')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Piso:</span>
+            <% const floorVal = project.floor; const floorLabel = floorVal != null ?
+              (floorVal === 0 ? 'Todos' : `${floorVal} Piso`) : 'No especificado'; %> <%=
+              floorLabel %>
+          </div>
+          <% } %>
+          <% if (showField('priority')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Prioridad:</span>
+            <%= project.priority == 1 ? 'Alta' : project.priority == 2 ? 'Media' : project.priority == 3 ? 'Baja' : 'No especificado' %>
+          </div>
+          <% } %>
+          <% if (showField('progress_percentage')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Avance:</span>
+            <%= project.progress_percentage || '0' %>%
+          </div>
+          <% } %>
+          <% if (showField('observations')) { %>
+          <div class="detail-row">
+            <span class="detail-label">Observaciones:</span>
+            <%= project.observations || 'N/A' %>
+          </div>
+          <% } %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Responsables Card -->
+    <div class="col-md-4 equal-height-col">
+      <div class="project-detail-card">
+        <div class="project-detail-header">Responsables</div>
+        <div class="project-detail-body">
+          <% if (showField('responsible')) { %>
+          <% 
+          // Create user map for this view if not already available
+          const userMap = {};
+          users.forEach(user => {
+            userMap[user.cod_ascinsa] = `${user.pnombre} ${user.apaterno}`;
+          });
+          
+          // Process responsible field
+          let responsibleNames = ['No asignado'];
+          const responsibleValue = project.responsible;
+          
+          if (responsibleValue) {
+            try {
+              // Try to parse as JSON first
+              const parsed = JSON.parse(responsibleValue);
+              if (Array.isArray(parsed)) {
+                responsibleNames = parsed.map(cod => userMap[cod] || cod);
+              } else {
+                responsibleNames = [userMap[parsed] || parsed];
+              }
+            } catch (e) {
+              // Fall back to comma-separated if not JSON
+              responsibleNames = responsibleValue.split(',')
+                .map(cod => userMap[cod.trim()] || cod.trim())
+                .filter(name => name); // Remove empty entries
+            }
+          }
+          
+          // Ensure we have at least one entry
+          if (responsibleNames.length === 0) {
+            responsibleNames = ['No asignado'];
+          }
+        %>
+
+          <% responsibleNames.forEach(responsible => { %>
+          <div class="responsible-item">
+            <div class="responsible-avatar">
+              <% 
+                const displayName = responsible.trim();
+                const initial = displayName && displayName !== 'No asignado' 
+                  ? displayName.split(' ')[0].charAt(0).toUpperCase() 
+                  : '?';
+              %>
+              <%= initial %>
+            </div>
+            <div>
+              <%= displayName || 'No asignado' %>
+            </div>
+          </div>
+          <% }); %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks and Files Section -->
+  <div class="row mt-0 equal-height">
+    <!-- Tasks Section -->
+    <div class="col-md-7">
+      <div class="card widget-card border-light shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title widget-card-title mb-0">Tareas del Proyecto</h5>
+            <% if (isAdmin) { %>
+            <a href="#createTaskModal" class="btn btn-primary btn-sm" data-toggle="modal">
+              <i class="fas fa-plus"></i> Crear Tarea
+            </a>
+            <% } else { %>
+            <button class="btn btn-primary btn-sm isDisabled" disabled>
+              <i class="fas fa-plus"></i> Crear Tarea
+            </button>
+            <% } %>
+          </div>
+          <% if (project.tasks && project.tasks.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0" id="dataTable">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Responsables</th>
+                  <th>Fecha Límite</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% project.tasks.forEach(task => { %>
+                <tr>
+                  <td><%= task.title %></td>
+                  <td>
+                    <% if (task.responsible) { %>
+                    <% const responsibleIds = task.responsible.split(','); %>
+                    <% responsibleIds.forEach(id => { %>
+                    <% const trimmedId = id.trim(); %>
+                    <% const user = users.find(u => u.cod_ascinsa === trimmedId); %>
+                    <% const displayName = user ? `${user.pnombre} ${user.apaterno}` : trimmedId; %>
+                    <span class="badge bg-secondary user-badge"><%= displayName %></span>
+                    <% }); %>
+                    <% } else { %>
+                    No asignado
+                    <% } %>
+                  </td>
+                  <td><%= task.due_date ? new Date(task.due_date).toLocaleDateString() : '--' %></td>
+                  <td>
+                    <span class="badge <%= task.status === 'Culminado' ? 'bg-success' : task.status === 'En Progreso' ? 'bg-primary' : 'bg-warning' %>">
+                      <%= task.status %>
+                    </span>
+                  </td>
+                  <td class="task-actions">
+                    <button type="button" class="btn btn-outline-info btn-sm view-task-btn" data-bs-toggle="modal" data-bs-target="#viewTaskModal" data-task-id="<%= task.id %>" data-title="<%= task.title %>" data-description="<%= task.description %>" data-priority="<%= task.priority %>" data-due-date="<%= task.due_date %>" data-responsible="<%= task.responsible %>" data-status="<%= task.status %>">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm edit-task-btn me-1" data-bs-toggle="modal" data-bs-target="#editTaskModal" data-task-id="<%= task.id %>" data-title="<%= task.title %>" data-description="<%= task.description %>" data-due-date="<%= task.due_date ? task.due_date.toISOString() : '' %>" data-priority="<%= task.priority %>" data-status="<%= task.status %>" data-responsible="<%= task.responsible %>">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="/projects/<%= categoryParam %>/<%= project.id %>/tasks/<%= task.id %>/delete" method="POST" class="d-inline">
+                      <% if (isAdmin) { %>
+                      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar esta tarea?')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      <% } else { %>
+                      <button class="btn btn-outline-danger btn-sm" disabled>
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      <% } %>
+                    </form>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <div class="alert alert-info">No hay tareas registradas para este proyecto.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Section -->
+    <div class="col-md-5">
+      <div class="card widget-card border-light shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title widget-card-title mb-0">Archivos del Proyecto</h5>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+              <i class="fas fa-upload"></i> Subir Archivos
+            </button>
+          </div>
+          <% if (project.files && project.files.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Tamaño</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% project.files.forEach(file => { %>
+                <tr>
+                  <td><%= file.file_name %></td>
+                  <td><%= file.file_type || 'Desconocido' %></td>
+                  <td>
+                    <% 
+                    const size = file.file_size || 0;
+                    if (size < 1024) { 
+                  %>
+                    <%= size %> B
+                    <% } else if (size < (1024 * 1024)) { %>
+                    <%= (size / 1024).toFixed(2) %> KB
+                    <% } else { %>
+                    <%= (size / (1024 * 1024)).toFixed(2) %> MB
+                    <% } %>
+                  </td>
+                  <td class="task-actions">
+                    <a href="<%= file.file_path %>" class="btn btn-outline-primary btn-sm" download target="_blank">
+                      <i class="fas fa-download"></i>
+                    </a>
+                    <form action="/projects/<%= categoryParam %>/<%= project.id %>/files/<%= file.id %>/delete" method="POST" style="display:inline;">
+                      <% if (isAdmin) { %>
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este archivo?')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      <% } else { %>
+                      <button class="btn btn-sm btn-outline-danger isDisabled" disabled>
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      <% } %>
+                    </form>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <div class="alert alert-info">No hay archivos para este proyecto.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload File Modal -->
+    <div class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadFileModalLabel">Subir Archivo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <form action="/projects/<%= categoryParam %>/<%= project.id %>/files/upload" method="POST" enctype="multipart/form-data">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="projectFile" class="form-label">Selecciona Archivo</label>
+                <input type="file" class="form-control" id="projectFile" name="projectFile" required>
+                <small class="text-muted">Formatos recomendados: PDF, DOCX, XLSX, JPG, PNG, etc.</small>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Subir Archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createTaskModalLabel">Crear Tarea</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="createTaskForm" action="/projects/<%= categoryParam %>/<%= project.id %>/tasks/create" method="POST">
+          <div class="modal-body">
+            <!-- Task Title -->
+            <div class="mb-3">
+              <label for="create-task-title" class="form-label">Título de la Tarea</label>
+              <input type="text" class="form-control" id="create-task-title" name="title" required>
+            </div>
+            <!-- Task Description (Changed from "detail" to "description") -->
+            <div class="mb-3">
+              <label for="create-task-description" class="form-label">Descripción</label>
+              <textarea class="form-control" id="create-task-description" name="description" rows="3" required></textarea>
+            </div>
+            <!-- Task Priority -->
+            <div class="mb-3">
+              <label for="create-task-priority" class="form-label">Prioridad</label>
+              <select class="form-select" id="create-task-priority" name="priority" required>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+                <option value="Rechazado">Rechazado</option>
+                <option value="Ajuste">Ajuste</option>
+                <option value="Stand By">Stand By</option>
+              </select>
+            </div>
+            <!-- Task Due Date -->
+            <div class="mb-3">
+              <label for="create-task-due-date" class="form-label">Fecha Límite</label>
+              <input type="date" class="form-control" id="create-task-due-date" name="due_date" required>
+            </div>
+            <!-- Task Responsible -->
+            <div class="mb-3">
+              <label for="create-task-responsible" class="form-label">Responsables</label>
+              <select class="form-select" id="create-task-responsible" name="responsible" multiple required>
+                <option value="VJA001">VICTOR JULCA</option>
+                <option value="JRB001">JUAN RECOBA</option>
+                <option value="KVA001">KEVYN VALVERDE</option>
+                <option value="MSA001">JEAN SEMINARIO</option>
+                <option value="ERA001">ERICK ROJAS</option>
+                <option value="LJP001">LUIS JARA</option>
+                <option value="WAC001">WILFREDO ARGOTE</option>
+                <option value="LQM001">LUIS QUINTANA</option>
+                <option value="WOC001">WILLY OSORIO</option>
+                <option value="GCC003">GILMAR CHAVEZ</option>
+                <option value="EJQ001">EDUARDO JAREZ</option>
+              </select>
+            </div>
+            <!-- Hidden input for status set to "Pendiente" by default -->
+            <input type="hidden" name="status" value="Pendiente">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear Tarea</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Task Modal -->
+  <div class="modal fade" id="viewTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            Tarea: <span id="viewTaskTitle">—</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!-- LEFT: Histórico de Horas -->
+            <div class="col-md-6 pe-4 border-end">
+              <h6>Histórico de Horas</h6>
+              <ul id="hoursLogList" class="list-group list-group-flush">
+                <li class="list-group-item text-center text-muted">Sin registros</li>
+              </ul>
+            </div>
+
+            <!-- RIGHT: Detalles de la Tarea (read‑only) -->
+            <div class="col-md-6 ps-4">
+              <h6>Detalles de la Tarea</h6>
+              <dl class="row">
+                <dt class="col-sm-4">Descripción</dt>
+                <dd class="col-sm-8" id="viewTaskDescription">—</dd>
+
+                <dt class="col-sm-4">Prioridad</dt>
+                <dd class="col-sm-8" id="viewTaskPriority">—</dd>
+
+                <dt class="col-sm-4">Estado</dt>
+                <dd class="col-sm-8" id="viewTaskStatus">—</dd>
+
+                <dt class="col-sm-4">Fecha Límite</dt>
+                <dd class="col-sm-8" id="viewTaskDueDate">—</dd>
+
+                <dt class="col-sm-4">Responsables</dt>
+                <dd class="col-sm-8">
+                  <ul id="viewTaskResponsible" class="mb-0 ps-3"></ul>
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <!-- make it wider -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTaskModalLabel">Editar Tarea</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!-- LEFT: Histórico y registro de horas -->
+            <div class="col-md-6 pe-4 border-end">
+              <h6>Registrar Nueva Hora</h6>
+              <form id="addHourForm" class="row g-2">
+                <input type="hidden" id="hour-task-id">
+                <input type="hidden" name="user_code" value="<%= user.cod_ascinsa %>">
+                <div class="col-6">
+                  <label class="form-label" for="hour-start">Inicio</label>
+                  <input type="datetime-local" class="form-control form-control-sm" id="hour-start" required>
+                </div>
+                <div class="col-6">
+                  <label class="form-label" for="hour-end">Fin</label>
+                  <input type="datetime-local" class="form-control form-control-sm" id="hour-end" required>
+                </div>
+                <div class="col-12 text-end">
+                  <button type="submit" class="btn btn-sm btn-primary">Agregar Hora</button>
+                </div>
+              </form>
+              <h6>Histórico de Horas</h6>
+              <ul id="editHoursLogList" class="list-group list-group-flush mb-4">
+                <li class="list-group-item text-center text-muted">Sin registros</li>
+              </ul>
+            </div>
+
+            <!-- RIGHT: Formulario de edición -->
+            <div class="col-md-6 ps-4">
+              <form id="editTaskForm" method="POST">
+                <input type="hidden" id="edit-task-id" name="task_id">
+
+                <div class="mb-3">
+                  <label for="edit-task-title" class="form-label">Título</label>
+                  <input type="text" class="form-control" id="edit-task-title" name="title">
+                </div>
+
+                <div class="mb-3">
+                  <label for="edit-task-detail" class="form-label">Descripción</label>
+                  <textarea class="form-control" id="edit-task-detail" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label for="edit-task-due-date" class="form-label">Fecha Límite</label>
+                  <input type="date" class="form-control" id="edit-task-due-date" name="due_date" required>
+                </div>
+
+                <div class="mb-3">
+                  <label for="edit-task-priority" class="form-label">Prioridad</label>
+                  <select class="form-select" id="edit-task-priority" name="priority" required>
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                    <option value="Rechazado">Rechazado</option>
+                    <option value="Ajuste">Ajuste</option>
+                    <option value="Stand By">Stand By</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="edit-task-status" class="form-label">Estado</label>
+                  <select class="form-select" id="edit-task-status" name="status" required>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En Progreso">En Progreso</option>
+                    <option value="Culminado">Culminado</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="edit-task-responsible" class="form-label">Responsables</label>
+                  <select class="form-select" id="edit-task-responsible" name="responsible" multiple required>
+                    <option value="VJA001">VICTOR JULCA</option>
+                    <option value="JRB001">JUAN RECOBA</option>
+                    <option value="KVA001">KEVYN VALVERDE</option>
+                    <option value="MSA001">JEAN SEMINARIO</option>
+                    <option value="ERA001">ERICK ROJAS</option>
+                    <option value="LJP001">LUIS JARA</option>
+                    <option value="WAC001">WILFREDO ARGOTE</option>
+                    <option value="LQM001">LUIS QUINTANA</option>
+                    <option value="WOC001">WILLY OSORIO</option>
+                    <option value="GCC003">GILMAR CHAVEZ</option>
+                    <option value="EJQ001">EDUARDO JAREZ</option>
+                  </select>
+                </div>
+
+                <div class="text-end">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-primary btn-sm">Guardar Cambios</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="mt-4 card">
+    <div class="card-body">
+      <h4 class="mt-0 mb-3">Comentarios (<%= project.comments ? project.comments.length : 0 %>)</h4>
+
+      <!-- Comment Submission Form -->
+      <form action="/projects/<%= categoryParam %>/<%= project.id %>/comments" method="POST" onsubmit="return validateComment()">
+        <textarea class="form-control form-control-light mb-2" name="comment" id="commentInput" placeholder="Escribe un mensaje..." rows="3" required></textarea>
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+        </div>
+      </form>
+
+      <script>
+        function validateComment() {
+          const comment = document.getElementById('commentInput').value.trim();
+          if (comment.split(' ').length < 2) {
+            alert('El comentario debe tener al menos dos palabras.');
+            return false;
+          }
+          return true;
+        }
+      </script>
+
+      <!-- Existing Comments Display -->
+      <% if (project.comments && project.comments.length > 0) { %>
+      <div id="commentsContainer">
+        <% const reversedComments = project.comments.slice().reverse(); %>
+        <% reversedComments.slice(0, 3).forEach(function(c, index) { %>
+        <div class="d-flex align-items-start mt-2 comment-item" data-index="<%= index %>">
+          <div class="responsible-avatar me-3">
+            <%= c.initial %>
+          </div>
+          <div class="w-100 overflow-hidden">
+            <h5 class="mt-0">
+              <%= c.displayName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') %>
+              <small class="text-muted ms-2" style="font-size: 0.8rem;">
+                <%= new Date(c.created_at).toLocaleString() %>
+              </small>
+            </h5>
+            <p><%= c.comment %></p>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% if (reversedComments.length > 3) { %>
+      <div class="text-center mt-3">
+        <button id="loadMoreComments" class="btn btn-link">Mostrar Más</button>
+      </div>
+      <% } %>
+      <% } else { %>
+      <p>Aún no hay comentarios.</p>
+      <% } %>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const comments = <%- JSON.stringify(project.comments.slice().reverse()) %>;
+          let displayedCount = 3;
+
+          document.getElementById('loadMoreComments')?.addEventListener('click', function() {
+            const container = document.getElementById('commentsContainer');
+            const nextComments = comments.slice(displayedCount, displayedCount + 3);
+
+            nextComments.forEach((c, index) => {
+              const commentElement = document.createElement('div');
+              commentElement.className = 'd-flex align-items-start mt-2 comment-item';
+              commentElement.setAttribute('data-index', displayedCount + index);
+              commentElement.innerHTML = `
+                <div class="responsible-avatar me-3">${c.initial}</div>
+                <div class="w-100 overflow-hidden">
+                  <h5 class="mt-0">
+                    ${c.displayName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                    <small class="text-muted ms-2" style="font-size: 0.8rem;">
+                      ${new Date(c.created_at).toLocaleString()}
+                    </small>
+                  </h5>
+                  <p>${c.comment}</p>
+                </div>
+              `;
+              container.appendChild(commentElement);
+            });
+
+            displayedCount += nextComments.length;
+
+            if (displayedCount >= comments.length) {
+              this.style.display = 'none';
+            }
+          });
+        });
+      </script>
+    </div>
+  </div>
+
+  <script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+  <script src="/vendor/jquery/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJ+YyCLzN9e+JheVGMVJk4pY1Q6+r+KpF3Yo0=" crossorigin="anonymous"></script>
+  <script>
+    const progressPercentage = <%- JSON.stringify(project.progress_percentage || 0) %>;
+    const isInProduction = <%= project.prod || 0 %> === 1;
+
+    function updateProgressTimeline() {
+      document.querySelectorAll('.step-item').forEach(step => {
+        step.style.color = '#dee2e6';
+        step.classList.remove('current');
+      });
+      const line = document.getElementById('process-line');
+      if (progressPercentage === 0) {
+        document.getElementById('step-por-iniciar').style.color = '#4e73df';
+        document.getElementById('step-por-iniciar').classList.add('current');
+        line.style.width = '0%';
+      } else if (progressPercentage > 0 && progressPercentage < 100) {
+        document.getElementById('step-por-iniciar').style.color = '#4e73df';
+        document.getElementById('step-en-proceso').style.color = '#4e73df';
+        document.getElementById('step-en-proceso').classList.add('current');
+        line.style.width = '33%';
+      } else if (progressPercentage >= 99 && !isInProduction) {
+        document.getElementById('step-por-iniciar').style.color = '#4e73df';
+        document.getElementById('step-en-proceso').style.color = '#4e73df';
+        document.getElementById('step-culminado').style.color = '#4e73df';
+        document.getElementById('step-culminado').classList.add('current');
+        line.style.width = '66%';
+      } else if (progressPercentage >= 100 && isInProduction) {
+        document.getElementById('step-por-iniciar').style.color = '#4e73df';
+        document.getElementById('step-en-proceso').style.color = '#4e73df';
+        document.getElementById('step-culminado').style.color = '#4e73df';
+        document.getElementById('step-en-produccion').style.color = '#0acf97';
+        document.getElementById('step-en-produccion').classList.add('current');
+        line.style.width = '100%';
+      }
+    }
+    updateProgressTimeline();
+
+    // Helper functions for date handling
+    function parseDatabaseDate(dateString) {
+      if (!dateString) return null;
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDateForDisplay(date) {
+      if (!date) return '--';
+      const options = {
+        timeZone: 'America/Lima',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return date.toLocaleString('es-PE', options);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // These globals come from your EJS template:
+      //   users, categoryParam, projectId
+
+      // ── CREATE TASK Modal ───────────────────────────────────────────────────────
+      const createModal = document.getElementById('createTaskModal');
+      createModal.addEventListener('show.bs.modal', async () => {
+        const responsibleSelect = document.getElementById('create-task-responsible');
+
+        // Show loading state
+        responsibleSelect.innerHTML = '<option value="" disabled>Loading responsables...</option>';
+
+        try {
+          // Fetch filtered responsables (area 004)
+          const response = await fetch(`/projects/${categoryParam}/${projectId}/tasks/responsibles`);
+          const responsables = await response.json();
+
+          // Clear and repopulate select
+          responsibleSelect.innerHTML = '';
+
+          if (responsables.length) {
+            responsables.forEach(user => {
+              const option = new Option(`${user.pnombre} ${user.apaterno}`, user.cod_ascinsa);
+              responsibleSelect.add(option);
+            });
+          } else {
+            responsibleSelect.innerHTML = '<option value="" disabled>No responsables found</option>';
+          }
+
+          // If using select2, reinitialize
+          if ($().select2) {
+            $(responsibleSelect).select2({
+              width: '100%',
+              placeholder: 'Select responsables'
+            });
+          }
+        } catch (error) {
+          console.error('Error loading responsables:', error);
+          responsibleSelect.innerHTML = '<option value="" disabled>Error loading responsables</option>';
+        }
+      });
+
+      // ── VIEW TASK Modal ─────────────────────────────────────────────────────────
+      const viewModal = document.getElementById('viewTaskModal');
+      viewModal.addEventListener('show.bs.modal', event => {
+        const btn = event.relatedTarget;
+        const taskId = btn.getAttribute('data-task-id');
+        const title = btn.getAttribute('data-title') || '—';
+        const desc = btn.getAttribute('data-description') || '—';
+        const priority = btn.getAttribute('data-priority') || '—';
+        const dueRaw = btn.getAttribute('data-due-date');
+        const status = btn.getAttribute('data-status') || '—';
+        const respData = btn.getAttribute('data-responsible') || '';
+
+        // Fill right‑side
+        document.getElementById('viewTaskTitle').textContent = title;
+        document.getElementById('viewTaskDescription').textContent = desc;
+        document.getElementById('viewTaskPriority').textContent = priority;
+        document.getElementById('viewTaskStatus').textContent = status;
+        document.getElementById('viewTaskDueDate').textContent = dueRaw ?
+          new Date(dueRaw).toLocaleDateString() :
+          '—';
+
+        // Responsables list
+        const respUl = document.getElementById('viewTaskResponsible');
+        respUl.innerHTML = '';
+        respData
+          .split(',')
+          .map(c => c.trim())
+          .filter(Boolean)
+          .forEach(code => {
+            const li = document.createElement('li');
+            const user = users.find(u => u.cod_ascinsa === code);
+            li.textContent = user ?
+              `${user.pnombre} ${user.apaterno}` :
+              code;
+            respUl.appendChild(li);
+          });
+        if (!respUl.children.length) {
+          respUl.innerHTML = '<li class="text-muted">No asignado</li>';
+        }
+
+        // Load hours log
+        const hoursList = document.getElementById('hoursLogList');
+        hoursList.innerHTML = '<li class="list-group-item text-center text-muted">Cargando…</li>';
+        fetch(`/projects/${categoryParam}/${projectId}/tasks/${taskId}/hours/json`)
+          .then(r => r.json())
+          .then(logs => {
+            if (!logs.length) {
+              return hoursList.innerHTML = '<li class="list-group-item">Sin registros</li>';
+            }
+            hoursList.innerHTML = logs.map(l => {
+              const startDate = parseDatabaseDate(l.hour_start);
+              const endDate = parseDatabaseDate(l.hour_end);
+
+              const formattedStart = formatDateForDisplay(startDate);
+              const formattedEnd = formatDateForDisplay(endDate);
+              const hours = startDate && endDate ? ((endDate - startDate) / 3600000).toFixed(2) : '0.00';
+
+              return `
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>${formattedStart} → ${formattedEnd}</span>
+                  <span class="badge bg-secondary">${hours}h</span>
+                </li>`;
+            }).join('');
+          })
+          .catch(() => {
+            hoursList.innerHTML = '<li class="list-group-item text-danger text-center">Error al cargar registros</li>';
+          });
+      });
+
+      // ── EDIT TASK Modal ─────────────────────────────────────────────────────────
+      const editModal = document.getElementById('editTaskModal');
+      editModal.addEventListener('show.bs.modal', event => {
+        const btn = event.relatedTarget;
+        const taskId = btn.getAttribute('data-task-id');
+        const title = btn.getAttribute('data-title') || '';
+        const desc = btn.getAttribute('data-description') || '';
+        const dueRaw = btn.getAttribute('data-due-date') || '';
+        const priority = btn.getAttribute('data-priority') || '';
+        const status = btn.getAttribute('data-status') || '';
+        const respData = btn.getAttribute('data-responsible') || '';
+
+        document.getElementById('hour-task-id').value = taskId;
+
+        // 1) Populate form fields
+        document.getElementById('edit-task-id').value = taskId;
+        document.getElementById('edit-task-title').value = title;
+        document.getElementById('edit-task-detail').value = desc;
+
+        // Normalize due_date
+        let dueVal = '';
+        if (dueRaw.includes('T')) {
+          dueVal = dueRaw.split('T')[0];
+        } else if (dueRaw.includes(' ')) {
+          dueVal = dueRaw.split(' ')[0];
+        } else {
+          dueVal = dueRaw;
+        }
+        document.getElementById('edit-task-due-date').value = dueVal;
+
+        // Priority & Status
+        document.getElementById('edit-task-priority').value = priority;
+        document.getElementById('edit-task-status').value = status;
+
+        // Responsables multi‑select
+        const sel = document.getElementById('edit-task-responsible');
+        const codes = respData.split(',').map(c => c.trim()).filter(Boolean);
+        Array.from(sel.options).forEach(opt => {
+          opt.selected = codes.includes(opt.value);
+        });
+
+        // 2) Set form action dynamically
+        document.getElementById('editTaskForm').action =
+          `/projects/${categoryParam}/${projectId}/tasks/${taskId}/edit`;
+
+        // 3) Fetch & render hours log in the left panel
+        const hoursListEdit = document.getElementById('editHoursLogList');
+        hoursListEdit.innerHTML = '<li class="list-group-item text-center text-muted">Cargando…</li>';
+        fetch(`/projects/${categoryParam}/${projectId}/tasks/${taskId}/hours/json`)
+          .then(r => r.json())
+          .then(logs => {
+            if (!logs.length) {
+              return hoursListEdit.innerHTML = '<li class="list-group-item">Sin registros</li>';
+            }
+            hoursListEdit.innerHTML = logs.map(l => {
+              const startDate = parseDatabaseDate(l.hour_start);
+              const endDate = parseDatabaseDate(l.hour_end);
+
+              const formattedStart = formatDateForDisplay(startDate);
+              const formattedEnd = formatDateForDisplay(endDate);
+              const hours = startDate && endDate ? ((endDate - startDate) / 3600000).toFixed(2) : '0.00';
+
+              return `
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>${formattedStart} → ${formattedEnd}</span>
+                  <span class="badge bg-secondary">${hours}h</span>
+                </li>`;
+            }).join('');
+          })
+          .catch(() => {
+            hoursListEdit.innerHTML = '<li class="list-group-item text-danger text-center">Error al cargar</li>';
+          });
+      });
+
+      // ── Handle "Agregar Hora" form in the Edit modal ─────────────────────────────
+      const addHourForm = document.getElementById('addHourForm');
+      addHourForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+
+        try {
+          // Show loading state
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Guardando...
+          `;
+
+          const tid = document.getElementById('hour-task-id').value;
+          const startInput = document.getElementById('hour-start').value;
+          const endInput = document.getElementById('hour-end').value;
+
+          // Validate inputs
+          if (!startInput || !endInput) {
+            throw new Error('Por favor complete ambas fechas');
+          }
+
+          const startDate = new Date(startInput);
+          const endDate = new Date(endInput);
+
+          if (isNaN(startDate.getTime())) {
+            throw new Error('Fecha de inicio inválida');
+          }
+
+          if (isNaN(endDate.getTime())) {
+            throw new Error('Fecha de fin inválida');
+          }
+
+          if (endDate <= startDate) {
+            throw new Error('La hora de fin debe ser posterior a la hora de inicio');
+          }
+
+          // Prepare data for API
+          const data = {
+            hour_start: startDate.toISOString(),
+            hour_end: endDate.toISOString(),
+            user_code: '<%= user.cod_ascinsa %>'
+          };
+
+          // Send to server
+          const response = await fetch(`/projects/${categoryParam}/${projectId}/tasks/${tid}/hours`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Error del servidor');
+          }
+
+          // Refresh the hours list
+          const hoursListEdit = document.getElementById('editHoursLogList');
+          hoursListEdit.innerHTML = '<li class="list-group-item text-center text-muted">Actualizando...</li>';
+
+          const logs = await fetch(`/projects/${categoryParam}/${projectId}/tasks/${tid}/hours/json`)
+            .then(r => r.json());
+
+          if (!logs?.length) {
+            hoursListEdit.innerHTML = '<li class="list-group-item">Sin registros</li>';
+          } else {
+            hoursListEdit.innerHTML = logs.map(log => {
+              const start = parseDatabaseDate(log.hour_start);
+              const end = parseDatabaseDate(log.hour_end);
+
+              const formattedStart = formatDateForDisplay(start);
+              const formattedEnd = formatDateForDisplay(end);
+              const hours = start && end ? ((end - start) / 3600000).toFixed(2) : '0.00';
+
+              return `
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>${formattedStart} → ${formattedEnd}</span>
+                  <span class="badge bg-secondary">${hours}h</span>
+                </li>`;
+            }).join('');
+          }
+
+          // Reset form
+          addHourForm.reset();
+
+        } catch (error) {
+          console.error('Error adding hour:', error);
+          alert(`Error: ${error.message}`);
+        } finally {
+          // Restore button state
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
+        }
+      });
+    });
+  </script>
+  <br>
+  <%- include('../partials/footer') %>
+</div>

@@ -1,0 +1,159 @@
+<%- include('../partials/header', { title, activePage }) %>
+<div id="wrapper">
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800"><%= title %></h1>
+        <p class="mb-4">
+          Aquí puedes registrar un nuevo ítem para el control interno.
+          <a href="/docs">Más información</a>.
+        </p>
+
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-dark">Registrar Ítem</h6>
+          </div>
+          <div class="card-body">
+            <form action="/control/create" method="POST">
+
+              <!-- Row 1: Requirement and Classifier -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="requirement" class="form-label">Requerimiento</label>
+                  <input type="text" class="form-control" id="requirement" name="requirement" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="classifier" class="form-label">Clasificador</label>
+                  <select class="form-select" id="classifier" name="classifier" required>
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <% classifierOptions.forEach(function(opt) { %>
+                    <option value="<%= opt %>"><%= opt %></option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Row 2: Subclassifier and Quantity -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="subclassifier" class="form-label">Subclasificador</label>
+                  <select class="form-select" id="subclassifier" name="subclassifier" required>
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <% subClassifierOptions.forEach(function(opt) { %>
+                    <option value="<%= opt %>"><%= opt %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="quantity" class="form-label">Cantidad</label>
+                  <input type="number" class="form-control" id="quantity" name="quantity" min="0" required>
+                </div>
+              </div>
+
+              <!-- Row 3: Location and Floor -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="location" class="form-label">Ubicación</label>
+                  <select class="form-select" id="location" name="location" required>
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <% locationOptions.forEach(function(opt) { %>
+                    <option value="<%= opt %>"><%= opt %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="floor" class="form-label">Piso</label>
+                  <select class="form-select" name="floor" id="floor">
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <% floorOptions.forEach(function(opt) { %>
+                    <option value="<%= opt.value %>"><%= opt.label %></option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Detail (Full Width) -->
+              <div class="mb-3">
+                <label for="detail" class="form-label">Detalle</label>
+                <textarea class="form-control" id="detail" name="detail" rows="3"></textarea>
+              </div>
+
+              <!-- Row 4: Priority and Area -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="priority" class="form-label">Prioridad</label>
+                  <select class="form-select" id="priority" name="priority">
+                    <% priorityOptions.forEach(function(opt) { %>
+                    <option value="<%= opt.value %>"><%= opt.label %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="area" class="form-label">Área</label>
+                  <select class="form-select" id="area" name="area">
+                    <% areaOptions.forEach(function(a) { %>
+                    <option value="<%= a %>"><%= a %></option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Row 5: Applicant and Responsible TI -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="applicant" class="form-label">Solicitante</label>
+                  <select class="form-select" id="applicant" name="applicant">
+                    <% solicitantes.forEach(function(u) { %>
+                    <option value="<%= u.cod_ascinsa %>">
+                      <%= u.pnombre %> <%= u.apaterno %>
+                    </option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="responsible_ti" class="form-label">Responsable TI</label>
+                  <select class="form-select" id="responsible_ti" name="responsible_ti" multiple>
+                    <% responsibles.forEach(function(u) { %>
+                    <option value="<%= u.cod_ascinsa %>">
+                      <%= u.pnombre %> <%= u.apaterno %>
+                    </option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Row 6: Approximate End Date and Progress Percentage -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="approximate_end_date" class="form-label">Fecha Aproximada de Fin</label>
+                  <input type="date" class="form-control" id="approximate_end_date" name="approximate_end_date">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="progress_percentage" class="form-label">Avance (%)</label>
+                  <input type="number" class="form-control" id="progress_percentage" name="progress_percentage" min="0" max="100">
+                </div>
+                <div class="cold-md-12 mb-3">
+                  <label for="iframe" class="form-label">Hoja de Cálculo (iframe URL)</label>
+                  <input type="text" id="iframe" name="iframe" class="form-control" placeholder="https://docs.google.com/…" value="">
+                </div>
+              </div>
+
+              <!-- Observations (Full Width) -->
+              <div class="mb-3">
+                <label for="observations" class="form-label">Observaciones</label>
+                <textarea class="form-control" id="observations" name="observations" rows="3"></textarea>
+              </div>
+
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/control" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Crear Ítem</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

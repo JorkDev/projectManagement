@@ -1,0 +1,22 @@
+<%- include('../partials/header', { title: 'Subir Reporte Global', activePage: 'reports' }) %>
+
+<div class="container mt-4">
+  <h1 class="h3 mb-3 text-gray-800">Subir Reporte Global</h1>
+  <form action="/reports/global/upload" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="report_date" class="form-label">Fecha del Reporte</label>
+      <input type="date" id="report_date" name="report_date" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="report_file" class="form-label">Selecciona Archivo</label>
+      <input type="file" id="report_file" name="report_file" class="form-control" 
+             accept=".pdf,.xlsx,.csv" required>
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-upload"></i> Subir
+    </button>
+    <a href="/reports/global" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<%- include('../partials/footer') %>

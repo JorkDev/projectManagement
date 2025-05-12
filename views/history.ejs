@@ -1,0 +1,25 @@
+<%- include('partials/header', { title: categoryTitle, activePage: 'history' }) %>
+<div class="container-fluid">
+  <h1 class="h3 mb-2 text-gray-800">Historial de Cambios</h1>
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <% if (Object.keys(logs).length === 0) { %>
+        <div class="alert alert-warning" role="alert">
+          No se encontraron entradas en el historial de cambios.
+        </div>
+      <% } else { %>
+        <% Object.keys(logs).forEach(date => { %>
+          <div class="mb-4">
+            <h5 class="font-weight-bold text-primary"><%= date %></h5>
+            <ul>
+              <% logs[date].forEach(entry => { %>
+                <li><%= entry %></li>
+              <% }) %>
+            </ul>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>
