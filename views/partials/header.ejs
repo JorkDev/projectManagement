@@ -87,15 +87,15 @@
           <% } %>
 
           <% if (user && (user.area==='004')) { %>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle px-2 <%= activePage === 'reports' ? 'text-secondary' : 'text-dark' %>" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Reportes
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
-                <li><a href="/reports/global" class="dropdown-item">Reportes Globales</a></li>
-                <li><a href="/reports/my" class="dropdown-item">Reportes Individuales</a></li>
-              </ul>
-            </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle px-2 <%= activePage === 'reports' ? 'text-secondary' : 'text-dark' %>" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Requerimientos
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+              <li><a href="/reports/global" class="dropdown-item">Reporte de Requerimientos Globales</a></li>
+              <li><a href="/reports/my" class="dropdown-item">Reporte de Requerimientos Individuales</a></li>
+            </ul>
+          </li>
           <% } %>
 
           <!-- Only show Registro de Horas for users with area '004' -->
@@ -105,19 +105,27 @@
               Registro de Horas
             </a>
           </li>
-            <% if (user && (user.cod_ascinsa==='EJQ001' )) { %>
-            </li>
-            <li>
-              <a href="/control" class="nav-link px-2 <%= activePage === 'control' ? 'text-secondary' : 'text-dark' %>">
-                Control Interno
-              </a>
-            </li>
-            <li>
-              <a href="/history" class="nav-link px-2 <%= activePage === 'history' ? 'text-secondary' : 'text-dark' %>">
-                Historial
-              </a>
-            </li>
-            <% } %>
+          <% if (user && (user.cod_ascinsa==='EJQ001' )) { %>
+          </li>
+
+
+          <% if (user && (user.area==='004')) { %>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle px-2 <%= activePage === 'reports' ? 'text-secondary' : 'text-dark' %>" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Control
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+              <li><a href="/control" class="dropdown-item">Control Interno</a></li>
+              <li><a href="/checking" class="dropdown-item">Control de Equipos</a></li>
+            </ul>
+          </li>
+          <% } %>
+          <li>
+            <a href="/history" class="nav-link px-2 <%= activePage === 'history' ? 'text-secondary' : 'text-dark' %>">
+              Historial
+            </a>
+          </li>
+          <% } %>
           <li>
             <a href="/docs" class="nav-link px-2 <%= activePage === 'docs' ? 'text-secondary' : 'text-dark' %>">
               Documentación

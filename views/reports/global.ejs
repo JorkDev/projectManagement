@@ -1,7 +1,7 @@
 <%- include('../partials/header', { title: 'Reportes Globales', activePage: 'reports' }) %>
 
 <div class="container mt-4">
-  <h1 class="h3 mb-3 text-gray-800">Reportes Globales</h1>
+  <h1 class="h3 mb-3 text-gray-800">Reporte Semanal de Requerimientos del Área</h1>
 
   <% if (success_msg && success_msg.length) { %>
     <div class="alert alert-success"><%= success_msg[0] %></div>
@@ -55,5 +55,11 @@
   </div>
 </div>
 <br>
-<script src="/vendor/bootstrap/js/v5/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap core JavaScript-->
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 <%- include('../partials/footer') %>

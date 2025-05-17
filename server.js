@@ -124,6 +124,23 @@ app.get('/docs', (req, res) => {
 });
 
 /**
+ * GET /checking
+ * @name ShowCheckList
+ * @description
+ *   Renderiza la vista del checklist de equipos críticos.
+ *
+ * @param {Request}  req  - Express request
+ * @param {Response} res  - Express response
+ */
+app.get('/checking', authenticateJWT, (req, res) => {
+  res.render('checking/check-list', {
+    categoryTitle: 'Control Diario de Equipos Críticos',
+    activePage: 'checking'
+  });
+});
+
+
+/**
  * GET /history
  * @name ShowHistory
  * @description

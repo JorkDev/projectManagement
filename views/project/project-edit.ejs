@@ -73,16 +73,27 @@
     <% } %>
 
     <!-- Prioridad Field -->
-    <div class="mb-3">
-      <label for="priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
-      <select class="form-select" id="priority" name="priority" required>
-        <option value="1" <%=project.priority==1 ? "selected" : "" %>>1 - Alta</option>
-        <option value="2" <%=project.priority==2 ? "selected" : "" %>>2 - Media</option>
-        <option value="3" <%=project.priority==3 ? "selected" : "" %>>3 - Baja</option>
-        <option value="4" <%=project.priority==4 ? "selected" : "" %>>4 - Rechazado</option>
-        <option value="5" <%=project.priority==5 ? "selected" : "" %>>5 - Ajuste</option>
-        <option value="6" <%=project.priority==6 ? "selected" : "" %>>6 - Stand By</option>
-      </select>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
+        <select class="form-select" id="priority" name="priority" required>
+          <option value="1" <%=project.priority==1 ? "selected" : "" %>>1 - Alta</option>
+          <option value="2" <%=project.priority==2 ? "selected" : "" %>>2 - Media</option>
+          <option value="3" <%=project.priority==3 ? "selected" : "" %>>3 - Baja</option>
+          <option value="4" <%=project.priority==4 ? "selected" : "" %>>4 - Rechazado</option>
+          <option value="5" <%=project.priority==5 ? "selected" : "" %>>5 - Ajuste</option>
+          <option value="6" <%=project.priority==6 ? "selected" : "" %>>6 - Stand By</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="status" class="form-label">Estado <span class="text-danger">*</span></label>
+        <select class="form-select" id="status" name="status" required>
+          <option value="pendiente" <%= project.status === 'pendiente'   ? 'selected' : '' %>>Pendiente</option>
+          <option value="en progreso" <%= project.status === 'en progreso' ? 'selected' : '' %>>En Progreso</option>
+          <option value="completado" <%= project.status === 'completado'  ? 'selected' : '' %>>Completado</option>
+          <option value="pausado" <%= project.status === 'pausado'     ? 'selected' : '' %>>Pausado</option>
+        </select>
+      </div>
     </div>
 
     <!-- Avance Field (Range Input) -->

@@ -381,7 +381,17 @@
         </a>
       </div>
     </div>
-    <p class="project-subtitle">Proyecto Privado</p>
+    <p class="project-subtitle">
+      Proyecto Privado
+      <span class="status-badge
+    <%= project.status === 'pendiente'   ? 'status-pending' :
+        project.status === 'en progreso' ? 'status-in-progress' :
+        project.status === 'completado'  ? 'status-completed' :
+                                           'status-pending'
+    %>">
+        <%= project.status.charAt(0).toUpperCase() + project.status.slice(1) %>
+      </span>
+    </p>
 
     <% if (showField('applicant')) { %>
     <div class="detail-row d-flex align-items-center">

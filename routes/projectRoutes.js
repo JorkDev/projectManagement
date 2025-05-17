@@ -69,6 +69,7 @@ const categoryConfig = {
       'ID',
       'Requerimiento',
       'Prioridad',
+      'Estado',
       'Solicitante',
       'Responsable',
       'Avance',
@@ -79,6 +80,7 @@ const categoryConfig = {
       Requerimiento: 'title',
       Descripción: 'detail',
       Prioridad: 'priority',
+      Estado: 'status',
       Área: 'area',
       Solicitante: 'applicant',
       Responsable: 'responsible',
@@ -94,6 +96,7 @@ const categoryConfig = {
       'ID',
       'Requerimiento',
       'Prioridad',
+      'Estado',
       'Solicitante',
       'Responsable',
       'Avance',
@@ -105,6 +108,7 @@ const categoryConfig = {
       Descripción: 'detail',
       Prioridad: 'priority',
       Área: 'area',
+      Estado: 'status',
       Solicitante: 'applicant',
       Responsable: 'responsible',
       'Fecha Inicio': 'start_date',
@@ -120,6 +124,7 @@ const categoryConfig = {
       'ID',
       'Requerimiento',
       'Prioridad',
+      'Estado',
       'Solicitante',
       'Responsable',
       'Avance'
@@ -133,6 +138,7 @@ const categoryConfig = {
       Clasificador: 'classifier',
       Subclasificador: 'subclassifier',
       Ubicación: 'location',
+      Estado: 'status',
       Piso: 'floor',
       Prioridad: 'priority',
       Área: 'area',
@@ -151,6 +157,7 @@ const categoryConfig = {
       'ID',
       'Requerimiento',
       'Prioridad',
+      'Estado',
       'Solicitante',
       'Responsable',
       'Avance'
@@ -161,6 +168,7 @@ const categoryConfig = {
       Descripción: 'detail',
       Prioridad: 'priority',
       Área: 'area',
+      Estado: 'status',
       Solicitante: 'applicant',
       Responsable: 'responsible',
       'Fecha Inicio': 'start_date',
@@ -340,7 +348,8 @@ router.post('/:category/create', async (req, res) => {
     responsible,
     start_date,
     end_date,
-    due_date
+    due_date,
+    status
   } = req.body;
 
   try {
@@ -364,6 +373,7 @@ router.post('/:category/create', async (req, res) => {
       start_date: start_date || null,
       end_date: end_date || null,
       due_date: due_date || null,
+      status: status || 'pendiente',
       created_at: new Date(),
       updated_at: new Date()
     };
@@ -580,6 +590,7 @@ router.get('/:category/:id/edit', async (req, res) => {
 
 /**
  * POST /:category/:id/edit
+ * 
  * @name UpdateProject
  * @description
  *   Updates project fields in the database, logs changes, and redirects.
@@ -605,7 +616,8 @@ router.post('/:category/:id/edit', async (req, res) => {
     classifier,
     subclassifier,
     location,
-    floor
+    floor,
+    status
   } = req.body;
 
   try {
@@ -640,6 +652,7 @@ router.post('/:category/:id/edit', async (req, res) => {
       subclassifier: clean(subclassifier),
       location: clean(location),
       floor: floor ? parseInt(floor, 10) : null,
+      status: clean(status),
       updated_at: new Date()
     };
 

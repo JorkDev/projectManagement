@@ -1,0 +1,581 @@
+<%- include('../partials/header', { title: 'Control de Equipos', activePage: 'checking' }) %>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<link href="./public/css/sb-admin-2.min.css" rel="stylesheet">
+<link href="./public/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+<style>
+  body {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .card {
+    margin-top: 2rem;
+  }
+
+  .table thead th {
+    font-size: 0.85rem;
+    vertical-align: middle;
+  }
+
+  .table td,
+  .table th {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .table input,
+  .table textarea,
+  .form-select {
+    width: 100%;
+    border: 1px solid #eeeeee;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 0.8rem;
+  }
+
+  .table textarea {
+    resize: vertical;
+    height: 60px;
+  }
+
+  .textarea-tall {
+    height: 180px !important;
+  }
+
+  .group-label {
+    background-color: #f9f9f9;
+    font-weight: bold;
+  }
+
+  .text-muted {
+    color: #6c757d;
+  }
+
+  .striped-group:nth-child(even) td {
+    background-color: #f9f9f9;
+  }
+
+  .multiselect-dropdown {
+    position: relative;
+  }
+
+  .multiselect-dropdown .dropdown-list {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-height: 250px;
+    overflow-y: auto;
+    width: 100%;
+    display: none;
+  }
+
+  .multiselect-dropdown.show .dropdown-list {
+    display: block;
+  }
+
+  .multiselect-dropdown label,
+  .multiselect-dropdown button.select-toggle {
+    display: block;
+    padding: 4px;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .multiselect-dropdown .select-toggle {
+    font-weight: bold;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .table input.form-control {
+    border: none;
+    box-shadow: none;
+  }
+
+  .table .input-group {
+    border: 1px solid #eeeeee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .table .input-group-append .input-group-text {
+    border: none;
+  }
+</style>
+
+<div class="container-fluid">
+  <h1 class="h3 text-gray-800 mt-4">Control Diario de Equipos Críticos</h1>
+
+  <!-- Filtros y botón exportar -->
+  <div class="row mb-4 mt-3 align-items-end">
+    <div class="col-md-3">
+      <label for="fechaRevision"><strong>Fecha de Revisión:</strong></label>
+      <input type="date" id="fechaRevision" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label><strong>Filtrar por Grupo:</strong></label>
+      <div class="multiselect-dropdown" id="groupDropdown">
+        <button type="button" id="groupDropdownBtn" class="form-control" onclick="toggleDropdown()">
+          Seleccionar grupos
+        </button>
+        <div class="dropdown-list" id="groupOptions">
+          <button type="button" class="select-toggle" onclick="toggleAllGroups()">
+            Seleccionar / Deseleccionar todos
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 text-end">
+      <button id="exportPDF" class="btn btn-primary w-90">📄 Exportar a PDF</button>
+    </div>
+  </div>
+
+  <!-- Tabla de revisión -->
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered small text-center">
+          <thead class="thead-light">
+            <tr>
+              <th>Grupo</th>
+              <th>Equipo</th>
+              <th>Horario</th>
+              <th>¿Operativo?</th>
+              <th>Velocidad</th>
+              <th>Consumo de Memoria</th>
+              <th>Alm. Total</th>
+              <th>Alm. Disp.</th>
+              <th>Temp (°C)</th>
+              <th>Humedad (%)</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="equipment-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor oculto de gráficos -->
+  <div id="chart-container" style="display:none;">
+    <canvas id="chart-operativos"></canvas>
+    <canvas id="chart-temp"></canvas>
+    <canvas id="chart-humedad"></canvas>
+    <canvas id="chart-capacidad"></canvas>
+    <canvas id="chart-velocidad"></canvas>
+    <canvas id="chart-memoria"></canvas>
+  </div>
+</div>
+
+<br>
+
+<!-- Librerías (orden correcto) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="./public/vendor/jquery/jquery.min.js"></script>
+<script src="./public/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="./public/vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="./public/js/sb-admin-2.min.js"></script>
+
+<!-- Script principal -->
+<script>
+  // Alias para jsPDF UMD
+  const {
+    jsPDF
+  } = window.jspdf;
+
+  // Estructura
+  const structure = [{
+      group: 'Relación de servidores',
+      rows: [
+        'www.iscolearning.com.pe',
+        'procesos250',
+        'SMTP',
+        'ISCOBASE',
+        'Oracle',
+        'samba.isco.com.pe',
+        'servidor_aduana',
+        'WSPISCO',
+        'ISCO-DC1',
+        'ISCO-DC2',
+        'PROCESOS28',
+        'PROXMOX-CORREOS',
+        'PROXMOX-CONTINGENCIA',
+        'PROXMOX-SINTAD',
+        'procesos17'
+      ]
+    },
+    {
+      group: 'Relación de equipos de comunicación',
+      rows: [
+        'CISCO-P3',
+        'CISCO-P3',
+        'CISCO-P3',
+        'ARUBA-P1',
+        'ARUBA-P4',
+        'ARUBA-P4'
+      ]
+    },
+    {
+      group: 'Internet',
+      rows: [
+        'Claro Empresa',
+        'Fiberlux'
+      ]
+    },
+    {
+      group: 'Data Center',
+      rows: [
+        'Aire Acondicionado',
+        'UPS',
+        'Equipo Contraincendio'
+      ]
+    },
+    {
+      group: 'VPN',
+      rows: [
+        'VPN Claro',
+        'VPN Fiberlux'
+      ]
+    },
+  ];
+  const restrictedFields = ['Velocidad', 'Consumo de Memoria', 'Alm. Total', 'Alm. Disp.'];
+  const numericFields = ['Velocidad', 'Consumo de Memoria', 'Alm. Total', 'Alm. Disp.', 'Temp (°C)', 'Humedad (%)'];
+  const disabledGroups = ['Data Center', 'VPN'];
+
+  // Elementos
+  const tbody = document.getElementById('equipment-body');
+  const groupOptions = document.getElementById('groupOptions');
+  const groupDropdownBtn = document.getElementById('groupDropdownBtn');
+  const saved = JSON.parse(localStorage.getItem('selectedGroups'));
+  let selectedGroups = new Set(
+    Array.isArray(saved) && saved.length ?
+    saved : ['Relación de servidores']
+  );
+
+  // Etiqueta del dropdown
+  function updateDropdownLabel() {
+    const count = selectedGroups.size;
+    groupDropdownBtn.textContent = count > 0 ?
+      `${count} grupo(s) seleccionados de 5` :
+      'Seleccionar grupos';
+  }
+
+  // Renderizar opciones de grupo
+  function renderGroupOptions() {
+    structure.forEach(section => {
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = section.group;
+      cb.checked = selectedGroups.size === 0 || selectedGroups.has(section.group);
+      if (cb.checked) selectedGroups.add(section.group);
+      cb.addEventListener('change', () => {
+        cb.checked ?
+          selectedGroups.add(cb.value) :
+          selectedGroups.delete(cb.value);
+        updateDropdownLabel();
+        saveSelection();
+        renderTable();
+      });
+      label.appendChild(cb);
+      label.append(` ${section.group}`);
+      groupOptions.appendChild(label);
+    });
+  }
+
+  // Seleccionar/Deseleccionar todos
+  function toggleAllGroups() {
+    const cbs = groupOptions.querySelectorAll('input[type=checkbox]');
+    const allChecked = Array.from(cbs).every(cb => cb.checked);
+    selectedGroups.clear();
+    cbs.forEach(cb => {
+      cb.checked = !allChecked;
+      if (!allChecked) selectedGroups.add(cb.value);
+    });
+    updateDropdownLabel();
+    saveSelection();
+    renderTable();
+  }
+
+  // Mostrar/ocultar dropdown
+  function toggleDropdown() {
+    document.getElementById('groupDropdown').classList.toggle('show');
+  }
+
+  function saveSelection() {
+    localStorage.setItem('selectedGroups', JSON.stringify(Array.from(selectedGroups)));
+  }
+
+  window.addEventListener('click', e => {
+    if (!document.getElementById('groupDropdown').contains(e.target)) {
+      document.getElementById('groupDropdown').classList.remove('show');
+    }
+  });
+
+  // Renderizar tabla con campos obligatorios Horario, Operativo y Observaciones
+  function renderTable() {
+    tbody.innerHTML = '';
+
+    // Configuración de campos por grupo / equipo
+    const allowedConfig = {
+      'Relación de servidores': [
+        'Consumo de Memoria',
+        'Alm. Total',
+        'Alm. Disp.',
+        'Temp (°C)',
+        'Humedad (%)'
+      ],
+      'Relación de equipos de comunicación': [
+        'Temp (°C)'
+      ],
+      'Internet': [
+        'Velocidad'
+      ],
+      'Data Center': {
+        'Aire Acondicionado': ['Temp (°C)'],
+        'UPS': ['Temp (°C)'],
+        'Equipo Contraincendio': []
+      },
+      'VPN': [
+        'Velocidad'
+      ]
+    };
+
+    const fields = [
+      'Equipo',
+      'Horario', // obligatorio
+      '¿Operativo?', // obligatorio
+      'Velocidad',
+      'Consumo de Memoria',
+      'Alm. Total',
+      'Alm. Disp.',
+      'Temp (°C)',
+      'Humedad (%)'
+    ];
+
+    structure.forEach((section, i) => {
+      if (!selectedGroups.has(section.group)) return;
+
+      section.rows.forEach((equip, idx) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('striped-group');
+        tr.dataset.group = section.group;
+
+        // Grupo con rowspan
+        if (idx === 0) {
+          const tdG = document.createElement('td');
+          tdG.className = 'group-label';
+          tdG.rowSpan = section.rows.length;
+          tdG.textContent = section.group;
+          tr.appendChild(tdG);
+        }
+
+        // Determinar campos permitidos
+        let allowed = allowedConfig[section.group];
+        if (section.group === 'Data Center') {
+          allowed = allowed[equip] || [];
+        }
+
+        // Renderizar celdas
+        fields.forEach(field => {
+          const td = document.createElement('td');
+
+          if (field === 'Equipo') {
+            td.textContent = equip;
+
+          } else if (field === 'Horario') {
+            // Siempre mostrar input de hora
+            const inp = document.createElement('input');
+            inp.type = 'time';
+            td.appendChild(inp);
+
+          } else if (field === '¿Operativo?') {
+            // Siempre mostrar checkbox
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            td.appendChild(cb);
+
+          } else if (allowed.includes(field)) {
+            // Campo permitido según configuración
+            // Númerico
+            if (numericFields.includes(field)) {
+              let unit = 'GB';
+              if (field === 'Velocidad') unit = 'MB';
+              if (field === 'Temp (°C)') unit = '°C';
+              if (field === 'Humedad (%)') unit = '%';
+
+              const wrapper = document.createElement('div');
+              wrapper.className = 'input-group';
+
+              const inp = document.createElement('input');
+              inp.type = 'number';
+              inp.className = 'form-control';
+              wrapper.appendChild(inp);
+
+              const appendDiv = document.createElement('div');
+              appendDiv.className = 'input-group-append';
+              const span = document.createElement('span');
+              span.className = 'input-group-text';
+              span.textContent = unit;
+              appendDiv.appendChild(span);
+
+              wrapper.appendChild(appendDiv);
+              td.appendChild(wrapper);
+
+            } else {
+              // Texto si llegara a haber
+              const inp = document.createElement('input');
+              inp.type = 'text';
+              td.appendChild(inp);
+            }
+
+          } else {
+            // No permitido → guion
+            td.innerHTML = '<span class="text-muted">—</span>';
+          }
+
+          tr.appendChild(td);
+        });
+
+        // Observaciones con rowspan (obligatorio)
+        if (idx === 0) {
+          const tdO = document.createElement('td');
+          tdO.rowSpan = section.rows.length;
+          const ta = document.createElement('textarea');
+          if (i < 2) ta.classList.add('textarea-tall');
+          tdO.appendChild(ta);
+          tr.appendChild(tdO);
+        }
+
+        tbody.appendChild(tr);
+      });
+    });
+  }
+
+  // Al cargar la página, fija el datepicker en hoy
+  const dateInput = document.getElementById('fechaRevision');
+  const today = new Date().toISOString().slice(0, 10);
+  dateInput.value = today;
+
+  // Inicialización
+  renderGroupOptions();
+  updateDropdownLabel();
+  renderTable();
+
+  // Exportar a PDF
+  document.getElementById('exportPDF').addEventListener('click', () => {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const charts = [{
+        id: 'chart-operativos',
+        title: 'Equipos Operativos por Grupo'
+      },
+      {
+        id: 'chart-temp',
+        title: 'Temperatura Promedio por Grupo'
+      },
+      {
+        id: 'chart-humedad',
+        title: 'Humedad Promedio por Grupo'
+      },
+      {
+        id: 'chart-capacidad',
+        title: 'Capacidad Total vs Disponible'
+      },
+      {
+        id: 'chart-velocidad',
+        title: 'Velocidad Promedio por Grupo'
+      },
+      {
+        id: 'chart-memoria',
+        title: 'Memoria Promedio por Grupo'
+      }
+    ];
+    let yOffset = 10;
+    charts.forEach((ch, idx) => {
+      const canvas = document.getElementById(ch.id);
+      // Usar toDataURL en lugar de html2canvas
+      const imgData = canvas.toDataURL('image/png');
+      doc.setFontSize(12);
+      doc.text(ch.title, 10, yOffset);
+      doc.addImage(imgData, 'PNG', 10, yOffset + 5, 180, 70);
+      yOffset += 85;
+      if (yOffset + 80 > 290) {
+        doc.addPage();
+        yOffset = 10;
+      }
+    });
+    doc.save('reporte_equipos_criticos.pdf');
+  });
+
+  // Gráficos dummy
+  const colors = ['#3366cc', '#dc3912', '#ff9900', '#109618', '#990099'];
+  const labels = structure.map(s => s.group);
+  const dummyData = labels.map(() => Math.floor(Math.random() * 100));
+  [{
+      id: 'chart-operativos',
+      label: 'Operativos %'
+    },
+    {
+      id: 'chart-temp',
+      label: 'Temperatura'
+    },
+    {
+      id: 'chart-humedad',
+      label: 'Humedad'
+    },
+    {
+      id: 'chart-capacidad',
+      label: ['Total', 'Disponible']
+    },
+    {
+      id: 'chart-velocidad',
+      label: 'Velocidad'
+    },
+    {
+      id: 'chart-memoria',
+      label: 'Consumo de Memoria'
+    }
+  ].forEach((def, i) => {
+    const ctx = document.getElementById(def.id).getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: Array.isArray(def.label) ?
+          def.label.map((l, j) => ({
+            label: l,
+            backgroundColor: colors[j],
+            data: labels.map(() => Math.floor(Math.random() * 100))
+          })) : [{
+            label: def.label,
+            backgroundColor: colors[i],
+            data: dummyData
+          }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: {
+            position: 'top'
+          }
+        }
+      }
+    });
+  });
+</script>
+<!-- Bootstrap core JavaScript-->
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+<%- include('../partials/footer') %>

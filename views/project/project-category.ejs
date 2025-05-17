@@ -1,6 +1,18 @@
 <%- include('../partials/header', { title: categoryTitle, activePage: 'gestion' }) %>
 
 <style>
+  td.text-center {
+    text-align: center !important;
+  }
+
+  .badge-badge-fixed {
+    display: inline-block;
+    width: 110px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 0.875rem;
+  }
+
   .card-header.py-3 {
     display: flex;
     justify-content: space-between;
@@ -127,11 +139,7 @@
                     <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Proyecto
                   </button>
                   <% } %>
-                  <a 
-                    href="/reports/pdf/<%= categoryParam %>" 
-                    target="_blank" 
-                    class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"
-                  >
+                  <a href="/reports/pdf/<%= categoryParam %>" target="_blank" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm">
                     <i class="fas fa-file-alt fa-sm text-white-50"></i>
                     Generar Informe PDF
                   </a>
@@ -181,7 +189,19 @@
                               };
                               const priority = priorityLabels[project[key]] || { text: project[key], class: 'badge-light' };
                             %>
-                          <span style="padding: 4px 20px;" class="badge <%= priority.class %>"><%= priority.text %></span>
+                          <span class="badge badge-badge-fixed <%= priority.class %>"><%= priority.text %></span>
+                          <% } else if (key === 'status') { %>
+                          <% 
+                            const statusLabels = {
+                              'pendiente': { text: 'Pendiente', class: 'badge-warning' },
+                              'en progreso': { text: 'En Progreso', class: 'badge-primary' },
+                              'completado': { text: 'Completado', class: 'badge-success' },
+                              'pausado': { text: 'Pausado', class: 'badge-secondary' }
+                            };
+                            const statusKey = (project[key] || '').toLowerCase();
+                            const status = statusLabels[statusKey] || { text: project[key], class: 'badge-light' };
+                          %>
+                          <span class="badge badge-badge-fixed <%= status.class %>"><%= status.text %></span>
                           <% } else if (key === 'prod') { %>
                           <%= project[key] == 0 ? 'No' : 'Sí' %>
                           <% } else if (key === 'progress_percentage') { %>
